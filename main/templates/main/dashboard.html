@@ -1,0 +1,61 @@
+{% extends 'main/layout.html' %} {% load humanize %} {% block content %}
+
+<div class="container mt-4">
+  <div class="dashboard-header">
+    <div class="dashboard-title">
+      📊 <span>Dashboard</span> <small class="muted">(Admin)</small>
+    </div>
+    <a href="{% url 'main:add_product' %}" class="btn btn-primary"
+      >+ Thêm sản phẩm</a
+    >
+    <a
+      href="{% url 'main:stats' %}"
+      class="btn btn-outline"
+      style="margin-left: 8px"
+      >Thống kê</a
+    >
+  </div>
+
+  <div class="panel">
+    <div class="panel-body">
+      <div class="table-responsive">
+        <table class="table-admin">
+          <thead>
+            <tr>
+              <th>Tên</th>
+              <th>Giá</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in products %}
+            <tr>
+              <td>{{ p.name }}</td>
+              <td>{{ p.price|intcomma }} đ</td>
+              <td>
+                <a
+                  href="{% url 'main:edit_product' p.id %}"
+                  class="btn btn-outline"
+                  >Sửa</a
+                >
+                <a
+                  href="{% url 'main:delete_product' p.id %}"
+                  class="btn btn-danger"
+                  onclick="return confirm('Xoá sản phẩm này?');"
+                  >Xóa</a
+                >
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3">Không có sản phẩm.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

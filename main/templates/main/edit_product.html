@@ -1,0 +1,114 @@
+{% extends 'main/layout.html' %} {% block content %}
+
+<div class="container mt-4">
+  <h2>Sửa sản phẩm</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div>
+      <label>Tên</label><br />
+      <input
+        name="name"
+        value="{{ product.name }}"
+        style="
+          width: 100%;
+          padding: 8px;
+          border-radius: 6px;
+          border: 1px solid #ddd;
+        "
+      />
+    </div>
+    <div>
+      <label>Giá</label><br />
+      <input
+        name="price"
+        value="{{ product.price }}"
+        style="
+          width: 200px;
+          padding: 8px;
+          border-radius: 6px;
+          border: 1px solid #ddd;
+        "
+      />
+    </div>
+    <div>
+      <label>Stock</label><br />
+      <input
+        name="stock"
+        value="{{ product.stock }}"
+        style="
+          width: 120px;
+          padding: 8px;
+          border-radius: 6px;
+          border: 1px solid #ddd;
+        "
+      />
+    </div>
+    <div style="margin-top: 10px">
+      <label>Danh mục</label><br />
+      <select
+        name="category"
+        style="padding: 8px; border-radius: 6px; border: 1px solid #ddd"
+      >
+        <option value="">-- Giữ nguyên --</option>
+        {% for c in categories %}
+        <option
+          value="{{ c.id }}"
+          {%
+          if
+          product.category
+          and
+          product.category.id=""
+          ="c.id"
+          %}selected{%
+          endif
+          %}
+        >
+          {{ c.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="margin-top: 10px">
+      <label>Ảnh hiện tại</label><br />
+      {% if product.image %}
+      <img
+        src="{{ product.image.url }}"
+        alt="{{ product.name }}"
+        style="
+          max-width: 160px;
+          display: block;
+          margin-bottom: 8px;
+          border-radius: 8px;
+        "
+      />
+      {% else %}
+      <div style="color: #777">Chưa có ảnh</div>
+      {% endif %}
+    </div>
+    <div style="margin-top: 10px">
+      <label>Thay ảnh</label><br />
+      <input type="file" name="image" id="image-input" />
+      <div id="preview" style="margin-top: 8px"></div>
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Lưu</button>
+  </form>
+</div>
+
+<script>
+  document
+    .getElementById("image-input")
+    .addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      const p = document.getElementById("preview");
+      p.innerHTML = "";
+      if (!file) return;
+      const img = document.createElement("img");
+      img.style.maxWidth = "160px";
+      img.style.borderRadius = "8px";
+      img.src = URL.createObjectURL(file);
+      p.appendChild(img);
+    });
+</script>
+
+{% endblock %}

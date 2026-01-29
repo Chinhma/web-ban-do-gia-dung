@@ -1,0 +1,38 @@
+{% extends 'main/layout.html' %} {% load humanize %} {% block content %}
+
+<div class="container mt-4">
+  <h2>Thống kê</h2>
+
+  <div class="panel" style="margin-bottom: 16px; padding: 12px">
+    <p><strong>Tổng số đơn hàng:</strong> {{ total_orders }}</p>
+    <p>
+      <strong>Tổng doanh thu (approved):</strong> {{ total_revenue|intcomma }} đ
+    </p>
+  </div>
+
+  <h4>Danh sách đơn theo ngày</h4>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Ngày</th>
+        <th>Số đơn</th>
+        <th>Doanh thu</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in daily %}
+      <tr>
+        <td>{{ row.day }}</td>
+        <td>{{ row.count }}</td>
+        <td>{{ row.revenue|intcomma }} đ</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3">Không có dữ liệu.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

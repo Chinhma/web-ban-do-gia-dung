@@ -1,0 +1,162 @@
+{% extends 'main/layout.html' %} {% load humanize %} {% block content %}
+
+<section class="home-sections">
+  <div class="container">
+    <!-- Featured -->
+    <div class="section-head">
+      <h2>Sản phẩm nổi bật</h2>
+      <a class="see-all" href="#">Xem tất cả →</a>
+    </div>
+
+    <div class="product-grid">
+      {% for p in featured %}
+      <div class="product-card">
+        {% if p.image %}
+        <div class="product-media">
+          <a href="{% url 'main:product_detail' p.id %}">
+            <img src="{{ p.image.url }}" alt="{{ p.name }}" />
+          </a>
+          <div class="badge badge-hot">Nổi bật</div>
+        </div>
+        {% endif %}
+        <div class="product-body">
+          <div class="product-title">
+            <a href="{% url 'main:product_detail' p.id %}">{{ p.name }}</a>
+          </div>
+          <div class="rating">
+            <span class="stars">★★★★★</span>
+            <span class="rating-count">({{ p.rating|default:"5.0" }})</span>
+          </div>
+          <div class="product-bottom">
+            <div class="price">{{ p.price|intcomma }}đ</div>
+            <form
+              action="{% url 'main:add_to_cart' p.id %}"
+              method="post"
+              class="inline-add"
+            >
+              {% csrf_token %}
+              <input type="hidden" name="quantity" value="1" />
+              <button class="btn-add" type="submit">🛒 Thêm</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- New -->
+    <div class="section-head">
+      <h2>Sản phẩm mới</h2>
+      <a class="see-all" href="#">Xem tất cả →</a>
+    </div>
+    <div class="product-grid">
+      {% for p in newest %}
+      <div class="product-card">
+        {% if p.image %}
+        <div class="product-media">
+          <a href="{% url 'main:product_detail' p.id %}">
+            <img src="{{ p.image.url }}" alt="{{ p.name }}" />
+          </a>
+          <div class="badge badge-new">Mới</div>
+        </div>
+        {% endif %}
+        <div class="product-body">
+          <div class="product-title">
+            <a href="{% url 'main:product_detail' p.id %}">{{ p.name }}</a>
+          </div>
+          <div class="rating">
+            <span class="stars">★★★★☆</span>
+            <span class="rating-count">({{ p.rating|default:"4.0" }})</span>
+          </div>
+          <div class="product-bottom">
+            <div class="price">{{ p.price|intcomma }}đ</div>
+            <form
+              action="{% url 'main:add_to_cart' p.id %}"
+              method="post"
+              class="inline-add"
+            >
+              {% csrf_token %}
+              <input type="hidden" name="quantity" value="1" />
+              <button class="btn-add" type="submit">🛒 Thêm</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- All products -->
+    <div class="section-head">
+      <h2>Tất cả sản phẩm</h2>
+    </div>
+    <div class="product-grid">
+      {% for p in products %}
+      <div class="product-card">
+        {% if p.image %}
+        <div class="product-media">
+          <a href="{% url 'main:product_detail' p.id %}">
+            <img src="{{ p.image.url }}" alt="{{ p.name }}" />
+          </a>
+          {% if p in featured %}
+          <div class="badge badge-hot">Nổi bật</div>
+          {% elif p in newest %}
+          <div class="badge badge-new">Mới</div>
+          {% endif %}
+        </div>
+        {% endif %}
+        <div class="product-body">
+          <div class="product-title">
+            <a href="{% url 'main:product_detail' p.id %}">{{ p.name }}</a>
+          </div>
+          <div class="rating">
+            <span class="stars">★★★★☆</span>
+            <span class="rating-count">({{ p.rating|default:"4.0" }})</span>
+          </div>
+          <div class="product-bottom">
+            <div class="price">{{ p.price|intcomma }}đ</div>
+            <form
+              action="{% url 'main:add_to_cart' p.id %}"
+              method="post"
+              class="inline-add"
+            >
+              {% csrf_token %}
+              <input type="hidden" name="quantity" value="1" />
+              <button class="btn-add" type="submit">🛒 Thêm</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Buy Now Modal -->
+<div id="buyNowModal" class="modal hidden">
+  <div class="modal-inner">
+    <button class="modal-close" id="buyNowClose">×</button>
+    <h3>Mua ngay</h3>
+    <form id="buyNowForm" method="post">
+      {% csrf_token %}
+      <div style="margin: 10px 0">Chọn số lượng:</div>
+      <input
+        type="number"
+        id="buyNowQty"
+        name="quantity"
+        value="1"
+        min="1"
+        style="width: 80px; padding: 6px"
+      />
+      <div style="margin-top: 12px; display: flex; gap: 8px">
+        <button type="submit" class="btn btn-primary">
+          Mua và điền thông tin
+        </button>
+        <button type="button" class="btn btn-secondary" id="buyNowAddToCart">
+          Thêm vào giỏ
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

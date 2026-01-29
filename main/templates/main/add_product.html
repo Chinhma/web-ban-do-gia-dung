@@ -1,0 +1,83 @@
+{% extends 'main/layout.html' %} {% block content %}
+
+<div class="container mt-4" style="max-width: 720px">
+  <h2>Thêm sản phẩm</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div style="margin-bottom: 10px">
+      <label>Tên</label><br />
+      <input
+        name="name"
+        style="
+          width: 100%;
+          padding: 8px;
+          border-radius: 6px;
+          border: 1px solid #ddd;
+        "
+      />
+    </div>
+    <div style="margin-bottom: 10px">
+      <label>Giá (VND)</label><br />
+      <input
+        name="price"
+        type="number"
+        style="
+          width: 100%;
+          padding: 8px;
+          border-radius: 6px;
+          border: 1px solid #ddd;
+        "
+      />
+    </div>
+    <div style="margin-bottom: 10px">
+      <label>Stock</label><br />
+      <input
+        name="stock"
+        type="number"
+        value="0"
+        style="
+          width: 120px;
+          padding: 8px;
+          border-radius: 6px;
+          border: 1px solid #ddd;
+        "
+      />
+    </div>
+    <div style="margin-bottom: 10px">
+      <label>Danh mục</label><br />
+      <select
+        name="category"
+        style="padding: 8px; border-radius: 6px; border: 1px solid #ddd"
+      >
+        <option value="">-- Chọn danh mục --</option>
+        {% for c in categories %}
+        <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="margin-bottom: 10px">
+      <label>Ảnh</label><br />
+      <input type="file" name="image" id="image-input" />
+      <div id="preview" style="margin-top: 8px"></div>
+    </div>
+
+    <button type="submit" class="btn btn-success">Thêm</button>
+  </form>
+</div>
+
+{% endblock %}
+<script>
+  document
+    .getElementById("image-input")
+    .addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      const p = document.getElementById("preview");
+      p.innerHTML = "";
+      if (!file) return;
+      const img = document.createElement("img");
+      img.style.maxWidth = "160px";
+      img.style.borderRadius = "8px";
+      img.src = URL.createObjectURL(file);
+      p.appendChild(img);
+    });
+</script>

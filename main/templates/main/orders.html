@@ -1,0 +1,63 @@
+{% extends 'main/layout.html' %} {% load humanize %} {% block content %}
+
+<div class="container mt-4">
+  <h2>Đơn hàng</h2>
+
+  {% if orders %}
+  <table class="table table-bordered">
+    <thead class="thead-dark">
+      <tr>
+        <th>Mã</th>
+        <th>Người dùng</th>
+        <th>Trạng thái</th>
+        <th>Tổng</th>
+        <th>Ngày</th>
+        {% if user.is_staff %}
+        <th>Hành động</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in orders %}
+      <tr>
+        <td><a href="{% url 'main:order_detail' o.id %}">#{{ o.id }}</a></td>
+        <td>{{ o.user.username }}</td>
+        <td>{{ o.status }}</td>
+        <td>{{ o.total_price|intcomma }} đ</td>
+        <td>{{ o.created_at }}</td>
+        {% if user.is_staff %}
+        <td>
+          {% if o.status == 'pending' %}
+          <form
+            method="post"
+            action="{% url 'main:review_order' o.id 'approve' %}"
+            style="display: inline"
+          >
+            {% csrf_token %}
+            <button class="btn btn-sm btn-success">Duyệt</button>
+          </form>
+          <form
+            method="post"
+            action="{% url 'main:review_order' o.id 'reject' %}"
+            style="display: inline"
+          >
+            {% csrf_token %}
+            <button class="btn btn-sm btn-danger">Từ chối</button>
+          </form>
+          {% elif o.status == 'approved' %}
+          <span class="text-success">Đã duyệt</span>
+          {% elif o.status == 'rejected' %}
+          <span class="text-danger">Đã hủy</span>
+          {% endif %}
+        </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>Không có đơn hàng.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

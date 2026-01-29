@@ -1,0 +1,123 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Website bán hàng</title>
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-row">
+        <div class="header-left">
+          <a href="/" class="brand">
+            <div class="brand-icon">🏠</div>
+            <div class="brand-name">HomeStore</div>
+          </a>
+        </div>
+
+        <div class="header-center">
+          <form action="{% url 'main:home' %}" method="get" class="search-form">
+            <input
+              type="text"
+              name="q"
+              placeholder="Tìm kiếm sản phẩm..."
+              value="{{ q|default:'' }}"
+            />
+          </form>
+        </div>
+
+        <div class="header-right" id="navbarActions">
+          {% if user.is_authenticated %}
+          <div class="user-info">👤 {{ user.username }}</div>
+          <a href="{% url 'main:cart' %}" class="cart-link" id="cartLink"
+            >🛒<span class="cart-badge" id="navCartBadge"
+              >{% with user.cartitem_set.count as c %}{{ c }}{% endwith %}</span
+            ></a
+          >
+          <a href="{% url 'main:orders' %}" class="link">Đơn hàng</a>
+          {% if user.is_staff %}
+          <a href="{% url 'main:dashboard' %}" class="link">Dashboard</a>
+          {% endif %}
+          <a href="{% url 'main:logout' %}" class="link">Logout</a>
+          {% else %}
+          <a href="{% url 'main:login' %}" class="btn btn-outline">Đăng nhập</a>
+          <a href="{% url 'main:register' %}" class="btn btn-primary"
+            >Đăng ký</a
+          >
+          <a href="{% url 'main:cart' %}" class="cart-link"
+            >🛒<span class="cart-badge" id="navCartBadge">0</span></a
+          >
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="container category-row">
+        <nav class="category-nav">
+          <a class="cat-item" href="#">
+            <div class="icon">🏠</div>
+            <span>Tất cả sản phẩm</span>
+          </a>
+          <a class="cat-item" href="#">
+            <div class="icon">🍳</div>
+            <span>Dụng cụ nấu ăn</span>
+          </a>
+          <a class="cat-item" href="#">
+            <div class="icon">🍽️</div>
+            <span>Bát đĩa</span>
+          </a>
+          <a class="cat-item" href="#">
+            <div class="icon">☕</div>
+            <span>Đồ uống</span>
+          </a>
+          <a class="cat-item" href="#">
+            <div class="icon">📦</div>
+            <span>Lưu trữ</span>
+          </a>
+          <a class="cat-item" href="#">
+            <div class="icon">🔌</div>
+            <span>Thiết bị điện</span>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+      <div class="flash {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <main>{% block content %}{% endblock %}</main>
+
+    <footer
+      style="margin-top: 40px; padding: 20px 0; background: #fff; color: #666"
+    >
+      <div class="container">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <div>© 2026 MyShop</div>
+          <div>
+            <a href="/" style="color: #666; margin-left: 10px">Trang chủ</a>
+            {% if user.is_staff or user.is_superuser %}
+            <a
+              href="{% url 'main:dashboard' %}"
+              style="color: #666; margin-left: 10px"
+              >Dashboard</a
+            >
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </footer>
+    {% block extra_js %}{% endblock %}
+    <script src="{% static 'main/js/script.js' %}"></script>
+  </body>
+</html>

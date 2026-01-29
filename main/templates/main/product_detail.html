@@ -1,0 +1,99 @@
+{% extends 'main/layout.html' %} {% load humanize %} {% block content %}
+<div class="container" style="padding: 30px 0">
+  <div class="product-detail">
+    <div
+      style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap"
+    >
+      <div style="flex: 1 1 380px">
+        {% if product.image %}
+        <div class="product-media">
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" />
+        </div>
+        {% endif %}
+      </div>
+
+      <div style="flex: 1 1 380px">
+        <h2 style="margin-bottom: 8px">{{ product.name }}</h2>
+        <div
+          style="
+            font-size: 20px;
+            color: #ff7a18;
+            font-weight: 700;
+            margin-bottom: 8px;
+          "
+        >
+          {{ product.price|intcomma }} đ
+        </div>
+        <div style="color: #666; margin-bottom: 12px">
+          Danh mục: {{ product.category.name }}
+        </div>
+        <div style="margin-bottom: 12px">
+          Tình trạng: {% if product.stock > 0 %}<span style="color: green"
+            >Còn hàng ({{ product.stock }})</span
+          >{% else %}<span style="color: #999">Hết hàng</span>{% endif %}
+        </div>
+
+        {% if user.is_authenticated and not user.is_staff %}
+        <form
+          action="{% url 'main:add_to_cart' product.id %}"
+          method="post"
+          style="
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+          "
+        >
+          {% csrf_token %}
+          <input
+            type="number"
+            name="quantity"
+            value="1"
+            min="1"
+            style="
+              width: 96px;
+              padding: 8px;
+              border-radius: 8px;
+              border: 1px solid #e6e6e6;
+            "
+          />
+          <button class="btn btn-secondary" type="submit">Thêm vào giỏ</button>
+        </form>
+
+        <div style="display: flex; gap: 8px; align-items: center">
+          <form
+            id="buyNowFormDetail"
+            action="{% url 'main:buy_now' product.id %}"
+            method="post"
+          >
+            {% csrf_token %}
+            <input
+              type="number"
+              name="quantity"
+              id="buyNowQtyDetail"
+              value="1"
+              min="1"
+              style="
+                width: 96px;
+                padding: 8px;
+                border-radius: 8px;
+                border: 1px solid #e6e6e6;
+                margin-right: 8px;
+              "
+            />
+            <button class="btn btn-primary" id="buyNowDetail">Mua ngay</button>
+          </form>
+        </div>
+        {% else %}
+        <p><a href="{% url 'main:login' %}">Đăng nhập</a> để mua hàng</p>
+        {% endif %}
+
+        <div style="margin-top: 18px; color: #444">
+          Mô tả sản phẩm: (không có mô tả chi tiết)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

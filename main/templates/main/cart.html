@@ -1,0 +1,137 @@
+{% extends 'main/layout.html' %} {% load humanize %} {% block content %}
+
+<div class="container mt-4">
+  <div class="cart-header">
+    <h2>Giỏ hàng</h2>
+  </div>
+
+  {% if items %}
+  <div class="cart-list">
+    <div class="cart-items">
+      {% for it in items %}
+      <div class="cart-item" data-item-id="{{ it.item.id }}">
+        <div class="cart-item-media">
+          {% if it.item.product.image %}
+          <img
+            src="{{ it.item.product.image.url }}"
+            alt="{{ it.item.product.name }}"
+          />
+          {% else %}
+          <div class="placeholder-img"></div>
+          {% endif %}
+        </div>
+        <div class="cart-item-body">
+          <div class="cart-item-title">{{ it.item.product.name }}</div>
+          <div class="cart-item-meta">
+            Giá: <strong>{{ it.item.product.price|intcomma }} đ</strong>
+          </div>
+          <div class="cart-item-controls">
+            <label>Số lượng</label>
+            <input
+              class="cart-qty"
+              data-item-id="{{ it.item.id }}"
+              type="number"
+              value="{{ it.item.quantity }}"
+              min="1"
+            />
+            <a
+              href="{% url 'main:remove_from_cart' it.item.id %}"
+              class="btn btn-danger btn-sm"
+              >Xóa</a
+            >
+          </div>
+        </div>
+        <div class="cart-item-price">
+          <div class="subtotal" id="subtotal-{{ it.item.id }}">
+            {{ it.subtotal|intcomma }} đ
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <aside class="cart-summary">
+      <div class="summary-card">
+        <div class="summary-row">
+          <span>Tổng:</span
+          ><strong id="cart-total">{{ total|intcomma }} đ</strong>
+        </div>
+        <form action="{% url 'main:checkout' %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary btn-block">
+            Thanh toán
+          </button>
+        </form>
+      </div>
+    </aside>
+  </div>
+
+  {% else %}
+  <div class="empty-cart">
+    <p>Giỏ hàng trống.</p>
+    <a href="{% url 'main:home' %}" class="btn btn-link">Tiếp tục mua sắm</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %} {% block extra_js %}
+<script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  document.querySelectorAll(".cart-qty").forEach(function (input) {
+    input.addEventListener("change", function (e) {
+      const id = this.dataset.itemId;
+      const qty = this.value;
+      const csrftoken = getCookie("csrftoken");
+      fetch(
+        '{% url "main:update_cart_quantity" 0 %}'.replace(
+          "/0/",
+          "/" + id + "/",
+        ),
+        {
+          method: "POST",
+          headers: { "X-CSRFToken": csrftoken, Accept: "application/json" },
+          body: new URLSearchParams({ quantity: qty }),
+        },
+      )
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.error) {
+            alert(data.error);
+            return;
+          }
+          if (data.deleted) {
+            const el = document.querySelector('[data-item-id="' + id + '"]');
+            if (el) el.remove();
+          } else {
+            const sub = document.getElementById("subtotal-" + id);
+            if (sub)
+              sub.innerText =
+                new Intl.NumberFormat().format(data.subtotal) + " đ";
+          }
+          const totalEl = document.getElementById("cart-total");
+          if (totalEl)
+            totalEl.innerText =
+              new Intl.NumberFormat().format(data.total) + " đ";
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("Lỗi cập nhật giỏ");
+        });
+    });
+  });
+</script>
+{% endblock %}

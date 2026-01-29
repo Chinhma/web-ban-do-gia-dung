@@ -1,0 +1,44 @@
+{% extends 'main/layout.html' %} {% block content %}
+<div class="container mt-5" style="max-width: 420px">
+  <h2>Đăng nhập</h2>
+
+  <form method="post">
+    {% csrf_token %}
+    <div style="margin-bottom: 10px">
+      <input
+        name="username"
+        placeholder="Username"
+        style="
+          width: 100%;
+          padding: 10px;
+          border-radius: 8px;
+          border: 1px solid #ddd;
+        "
+      />
+    </div>
+    <div style="margin-bottom: 10px">
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        style="
+          width: 100%;
+          padding: 10px;
+          border-radius: 8px;
+          border: 1px solid #ddd;
+        "
+      />
+    </div>
+    <button type="submit" class="btn btn-primary">Đăng nhập</button>
+  </form>
+
+  {% if messages %}
+  <div style="margin-top: 12px">
+    {% for message in messages %}
+    <div class="flash {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

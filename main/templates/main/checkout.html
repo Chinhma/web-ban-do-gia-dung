@@ -1,0 +1,54 @@
+{% extends 'main/layout.html' %} {% load humanize %} {% block content %}
+<div class="container" style="padding: 30px 0">
+  <h2>Thanh toán</h2>
+
+  {% if items %}
+  <div class="checkout-grid">
+    <section class="checkout-form-card">
+      <h3>Thông tin nhận hàng</h3>
+      <form method="post" class="checkout-form">
+        {% csrf_token %}
+        <div class="form-row">
+          <label>Họ tên</label>
+          <input type="text" name="full_name" required />
+        </div>
+        <div class="form-row">
+          <label>Địa chỉ</label>
+          <input type="text" name="address" required />
+        </div>
+        <div class="form-row">
+          <label>Số điện thoại</label>
+          <input type="text" name="phone" required />
+        </div>
+        <div style="margin-top: 12px">
+          <button type="submit" class="btn btn-primary">
+            Xác nhận và thanh toán
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="checkout-summary">
+      <h3>Đơn hàng</h3>
+      <div class="summary-box">
+        {% for it in items %}
+        <div class="summary-line">
+          <div class="s-title">
+            {{ it.item.product.name }} x{{ it.item.quantity }}
+          </div>
+          <div class="s-price">{{ it.subtotal|intcomma }} đ</div>
+        </div>
+        {% endfor %}
+        <hr />
+        <div class="summary-line total">
+          <div>Tổng</div>
+          <div class="s-price">{{ total|intcomma }} đ</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+  {% else %}
+  <p>Giỏ hàng rỗng.</p>
+  {% endif %}
+</div>
+{% endblock %}

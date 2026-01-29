@@ -1,0 +1,42 @@
+{% extends 'main/layout.html' %} {% block content %}
+<div class="container" style="padding: 30px 0">
+  <h2>Thanh toán - Mua ngay</h2>
+  <p>Sản phẩm: <strong>{{ product.name }}</strong></p>
+  <p>Số lượng: <strong>{{ quantity }}</strong></p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div style="margin-bottom: 10px">
+      <label>Họ tên</label><br />
+      <input
+        type="text"
+        name="full_name"
+        required
+        style="width: 100%; padding: 8px"
+      />
+    </div>
+    <div style="margin-bottom: 10px">
+      <label>Địa chỉ nhận hàng</label><br />
+      <input
+        type="text"
+        name="address"
+        required
+        style="width: 100%; padding: 8px"
+      />
+    </div>
+    <div style="margin-bottom: 10px">
+      <label>Số điện thoại</label><br />
+      <input
+        type="text"
+        name="phone"
+        required
+        style="width: 100%; padding: 8px"
+      />
+    </div>
+
+    <button class="btn btn-primary" type="submit">
+      Xác nhận và thanh toán
+    </button>
+  </form>
+</div>
+{% endblock %}
