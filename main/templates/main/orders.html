@@ -42,7 +42,7 @@
           {% endif %}
         </td>
         <td>{{ o.total_price|intcomma }} đ</td>
-        <td>{{ o.created_at }}</td>
+        <td>{{ o.created_at|date:"H:i:s - d/m/Y" }}</td>
         {% if user.is_staff %}
         <td>
           {% if o.status == 'pending' %}

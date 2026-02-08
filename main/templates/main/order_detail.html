@@ -2,9 +2,14 @@
 
 <div class="container mt-4">
   <h2>Đơn hàng #{{ order.id }}</h2>
-  <p>Trạng thái: <strong>{{ order.status }}</strong></p>
+  <p>Trạng thái: <strong>
+    {% if order.status == 'pending' %}Đang chờ
+    {% elif order.status == 'approved' %}Đã duyệt
+    {% elif order.status == 'rejected' %}Đã từ chối
+    {% else %}{{ order.status }}{% endif %}
+  </strong></p>
   <p>Người dùng: {{ order.user.username }}</p>
-  <p>Ngày: {{ order.created_at }}</p>
+  <p>Ngày: {{ order.created_at|date:"H:i:s - d/m/Y" }}</p>
   <hr />
   <h5>Thông tin nhận hàng</h5>
   <p><strong>Người nhận:</strong> {{ order.recipient_name }}</p>
