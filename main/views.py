@@ -8,6 +8,9 @@ from django.db import transaction, models
 from django.contrib import messages
 from django.shortcuts import render
 from django.http import JsonResponse
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ---------- CHECK ADMIN ----------
 def is_admin(user):
@@ -192,7 +195,27 @@ def checkout(request):
 
     with transaction.atomic():
         total = 0
-        # create pending order (admin must approve)
+        # lock involved product rows to avoid race conditions and verify stock
+        product_ids = [it.product_id for it in items]
+        locked_products = {p.id: p for p in Product.objects.select_for_update().filter(pk__in=product_ids)}
+        # check availability and prepare adjustments if needed
+        adjustments = {}  # product_id -> adjusted_qty (when stock < requested but >0)
+        for it in items:
+            p = locked_products.get(it.product_id)
+            if p is None:
+                messages.error(request, f"Sản phẩm không tồn tại: {it.product_id}")
+                logger.error("Checkout failed: missing product id=%s user=%s", it.product_id, request.user.id)
+                return redirect('main:cart')
+            if p.stock is not None and p.stock < it.quantity:
+                logger.warning("Checkout stock insufficient: user=%s product=%s requested=%s stock=%s",
+                               request.user.id, p.id, it.quantity, p.stock)
+                if p.stock > 0:
+                    adjustments[it.product_id] = p.stock
+                else:
+                    messages.error(request, f"Sản phẩm {p.name} đã hết hàng")
+                    return redirect('main:cart')
+
+        # create pending order and reserve stock immediately
         order = Order.objects.create(
             user=request.user,
             status='pending',
@@ -201,14 +224,24 @@ def checkout(request):
             phone=phone,
             note=note,
         )
+        adjusted_messages = []
         for it in items:
-            # do not decrement stock here; admin approves later
-            OrderItem.objects.create(order=order, product=it.product, quantity=it.quantity, price=it.product.price)
-            total += it.product.price * it.quantity
+            p = locked_products[it.product_id]
+            qty_to_use = adjustments.get(it.product_id, it.quantity)
+            if qty_to_use != it.quantity:
+                adjusted_messages.append(f"{p.name}: yêu cầu {it.quantity} -> đặt {qty_to_use}")
+            # decrement stock to reserve for this order
+            if p.stock is not None:
+                p.stock = max(0, p.stock - qty_to_use)
+                p.save()
+            OrderItem.objects.create(order=order, product=p, quantity=qty_to_use, price=p.price)
+            total += p.price * qty_to_use
         order.total = total
         order.save()
         # clear cart
         items.delete()
+        if adjusted_messages:
+            messages.warning(request, 'Một số sản phẩm được điều chỉnh số lượng: ' + '; '.join(adjusted_messages))
 
     messages.success(request, "Thanh toán thành công. Đơn hàng đã được tạo.")
     return redirect("main:orders")
@@ -238,9 +271,22 @@ def checkout_now(request):
     qty = int(data.get('quantity', 1))
     if request.method == 'POST':
         # simple stock check before creating a pending order
-        if product.stock is not None and product.stock < qty:
-            messages.error(request, "Sản phẩm không đủ số lượng")
-            return redirect('main:home')
+        # use row locking to prevent races and reserve stock immediately
+        with transaction.atomic():
+            p = Product.objects.select_for_update().get(pk=product.pk)
+            if p.stock is not None and p.stock < qty:
+                logger.warning("Checkout_now stock insufficient: user=%s product=%s requested=%s stock=%s session=%s",
+                               request.user.id, p.id, qty, p.stock, request.session.get('buy_now'))
+                if p.stock > 0:
+                    adjusted_qty = p.stock
+                    messages.warning(request, f"Số lượng cho sản phẩm {p.name} được điều chỉnh: {qty} -> {adjusted_qty}")
+                    qty = adjusted_qty
+                else:
+                    messages.error(request, "Sản phẩm không đủ số lượng")
+                    return redirect('main:home')
+            # deduct stock to reserve for this pending order
+            p.stock = max(0, p.stock - qty) if p.stock is not None else p.stock
+            p.save()
         full_name = request.POST.get('full_name')
         address = request.POST.get('address')
         phone = request.POST.get('phone')
@@ -250,8 +296,8 @@ def checkout_now(request):
             return redirect('main:checkout_now')
         with transaction.atomic():
             order = Order.objects.create(user=request.user, status='pending', total=0, recipient_name=full_name, address=address, phone=phone, note=note)
-            OrderItem.objects.create(order=order, product=product, quantity=qty, price=product.price)
-            total = product.price * qty
+            OrderItem.objects.create(order=order, product=p, quantity=qty, price=p.price)
+            total = p.price * qty
             order.total = total
             order.save()
         # clear session
@@ -269,9 +315,9 @@ def checkout_now(request):
 @login_required
 def order_list(request):
     if request.user.is_staff:
-        orders = Order.objects.all().select_related('user')
+        orders = Order.objects.all().select_related('user').prefetch_related('items__product')
     else:
-        orders = Order.objects.filter(user=request.user)
+        orders = Order.objects.filter(user=request.user).prefetch_related('items__product')
     return render(request, "main/orders.html", {"orders": orders})
 
 

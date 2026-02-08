@@ -9,6 +9,7 @@
       <tr>
         <th>Mã</th>
         <th>Người dùng</th>
+        <th>Tên sản phẩm</th>
         <th>Trạng thái</th>
         <th>Tổng</th>
         <th>Ngày</th>
@@ -22,7 +23,24 @@
       <tr>
         <td><a href="{% url 'main:order_detail' o.id %}">#{{ o.id }}</a></td>
         <td>{{ o.user.username }}</td>
-        <td>{{ o.status }}</td>
+        <td>
+          {% for it in o.items.all %}
+            {{ it.product.name }}{% if not forloop.last %}, {% endif %}
+          {% empty %}
+            -
+          {% endfor %}
+        </td>
+        <td>
+          {% if o.status == 'pending' %}
+            Đang chờ
+          {% elif o.status == 'approved' %}
+            Đã duyệt
+          {% elif o.status == 'rejected' %}
+            Đã từ chối
+          {% else %}
+            {{ o.status }}
+          {% endif %}
+        </td>
         <td>{{ o.total_price|intcomma }} đ</td>
         <td>{{ o.created_at }}</td>
         {% if user.is_staff %}
