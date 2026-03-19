@@ -1,0 +1,144 @@
+{% extends 'main/layout.html' %}
+
+{% block content %}
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px">
+  <div style="background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); width: 100%; max-width: 420px; padding: 40px">
+    
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 30px">
+      <h1 style="font-size: 28px; font-weight: 700; color: #1a1a1a; margin: 0 0 8px 0">Đăng Nhập</h1>
+      <p style="color: #666; font-size: 14px; margin: 0">Vào tài khoản HomeStore của bạn</p>
+    </div>
+
+    <!-- Error Messages -->
+    {% if messages %}
+    <div style="background: #fee; border-left: 4px solid #ff4444; padding: 12px; border-radius: 4px; margin-bottom: 20px">
+      {% for message in messages %}
+      <p style="margin: 4px 0; color: #c00; font-size: 13px">
+        <i class="fa-solid fa-exclamation-circle"></i> {{ message }}
+      </p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="POST" style="width: 100%">
+      {% csrf_token %}
+
+      <!-- Username Field -->
+      <div style="margin-bottom: 18px">
+        <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px">
+          <i class="fa-solid fa-user" style="margin-right: 6px; color: #667eea"></i> Tên đăng nhập
+        </label>
+        <input
+          type="text"
+          name="username"
+          required
+          style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; box-sizing: border-box; transition: all 0.3s ease"
+          placeholder="Nhập tên đăng nhập"
+          onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+          onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+        />
+      </div>
+
+      <!-- Password Field -->
+      <div style="margin-bottom: 20px">
+        <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px">
+          <i class="fa-solid fa-lock" style="margin-right: 6px; color: #667eea"></i> Mật khẩu
+        </label>
+        <div style="position: relative">
+          <input
+            type="password"
+            name="password"
+            required
+            id="password-input"
+            style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; box-sizing: border-box; transition: all 0.3s ease"
+            placeholder="Nhập mật khẩu"
+            onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+            onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+          />
+          <button
+            type="button"
+            onclick="togglePassword()"
+            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #666; cursor: pointer; font-size: 16px; padding: 0"
+          >
+            <i class="fa-solid fa-eye" id="toggle-icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Remember Me & Forgot Password -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 13px">
+        <label style="display: flex; align-items: center; cursor: pointer; color: #666">
+          <input type="checkbox" name="remember" style="margin-right: 6px; cursor: pointer" />
+          Nhớ tôi
+        </label>
+        <a href="{% url 'main:forgot_password' %}" style="color: #667eea; text-decoration: none; font-weight: 500">Quên mật khẩu?</a>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4)"
+        onmouseover="this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)'; this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)'; this.style.transform='translateY(0)'"
+      >
+        <i class="fa-solid fa-sign-in-alt" style="margin-right: 8px"></i> Đăng Nhập
+      </button>
+    </form>
+
+    <!-- Divider -->
+    <div style="display: flex; align-items: center; margin: 24px 0; gap: 10px">
+      <div style="flex: 1; height: 1px; background: #e0e0e0"></div>
+      <span style="color: #999; font-size: 12px">Hoặc</span>
+      <div style="flex: 1; height: 1px; background: #e0e0e0"></div>
+    </div>
+
+    <!-- Social Login -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px">
+      <button
+        style="padding: 10px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px"
+        onmouseover="this.style.borderColor='#667eea'; this.style.background='#f8f9ff'"
+        onmouseout="this.style.borderColor='#e0e0e0'; this.style.background='white'"
+      >
+        <i class="fa-brands fa-google" style="color: #ea4335"></i> Google
+      </button>
+      <button
+        style="padding: 10px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px"
+        onmouseover="this.style.borderColor='#667eea'; this.style.background='#f8f9ff'"
+        onmouseout="this.style.borderColor='#e0e0e0'; this.style.background='white'"
+      >
+        <i class="fa-brands fa-facebook" style="color: #1877f2"></i> Facebook
+      </button>
+    </div>
+
+    <!-- Register Link -->
+    <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e0e0e0">
+      <p style="color: #666; font-size: 14px; margin: 0">
+        Chưa có tài khoản?
+        <a href="{% url 'main:register' %}" style="color: #667eea; text-decoration: none; font-weight: 600; transition: all 0.3s ease" onmouseover="this.style.color='#764ba2'" onmouseout="this.style.color='#667eea'">
+          Đăng ký ngay
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePassword() {
+  const input = document.getElementById('password-input');
+  const icon = document.getElementById('toggle-icon');
+  
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+}
+</script>
+
+{% endblock %}

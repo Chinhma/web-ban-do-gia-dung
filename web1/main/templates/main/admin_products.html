@@ -1,0 +1,126 @@
+{% extends "main/admin_base.html" %}
+{% load humanize %}
+
+{% block title %}Quản lý sản phẩm - Admin{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1 style="font-size: 28px; font-weight: 600; color: #222;">
+        <i class="fas fa-box" style="margin-right: 12px; color: #4682b4;"></i>
+        Quản lý sản phẩm
+    </h1>
+    <a href="{% url 'main:admin_product_add' %}" style="background: #4682b4; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fas fa-plus"></i> Thêm sản phẩm
+    </a>
+</div>
+
+<div class="admin-block">
+    {% if products %}
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+            <tr style="border-bottom: 2px solid #e5e7eb; background-color: #f9f9f9;">
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; width: 30%;">Tên sản phẩm</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666; width: 15%;">Danh mục</th>
+                <th style="padding: 12px; text-align: right; font-weight: 600; color: #666; width: 15%;">Giá</th>
+                <th style="padding: 12px; text-align: center; font-weight: 600; color: #666; width: 10%;">Kho</th>
+                <th style="padding: 12px; text-align: center; font-weight: 600; color: #666; width: 30%;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr style="border-bottom: 1px solid #f0f0f0; transition: all 0.3s;" onmouseover="this.style.backgroundColor='#f9f9f9'" onmouseout="this.style.backgroundColor='transparent'">
+                <td style="padding: 12px;">
+                    <div>
+                        <p style="margin: 0; font-weight: 500; color: #222;">{{ product.name }}</p>
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" style="width: 40px; height: 40px; border-radius: 4px; margin-top: 4px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                </td>
+                <td style="padding: 12px;">{{ product.category.name }}</td>
+                <td style="padding: 12px; text-align: right; font-weight: 600; color: #ff6b6b;">{{ product.price|intcomma }}đ</td>
+                <td style="padding: 12px; text-align: center;">
+                    <span style="background: {% if product.stock > 0 %}#f6ffed{% else %}#fff1f0{% endif %}; color: {% if product.stock > 0 %}#52c41a{% else %}#ff4d4f{% endif %}; padding: 4px 8px; border-radius: 4px; font-weight: 500;">
+                        {{ product.stock }}
+                    </span>
+                </td>
+                <td style="padding: 12px; text-align: center;">
+                    <a href="{% url 'main:edit_product' product.id %}" style="color: #4682b4; margin-right: 12px; text-decoration: none; transition: all 0.3s;" title="Sửa sản phẩm">
+                        <i class="fas fa-edit"></i> Sửa
+                    </a>
+                    <a href="javascript:void(0)" onclick="deleteProduct({{ product.id }}, '{{ product.name|escapejs }}')" style="color: #ff4d4f; text-decoration: none; transition: all 0.3s;" title="Xóa sản phẩm">
+                        <i class="fas fa-trash"></i> Xóa
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 60px 20px; color: #999;">
+        <i class="fas fa-box-open" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+        <p>Không có sản phẩm nào</p>
+        <a href="{% url 'main:admin_product_add' %}" style="margin-top: 16px; display: inline-block; background: #4682b4; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            <i class="fas fa-plus"></i> Thêm sản phẩm đầu tiên
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ff4d4f; margin-bottom: 16px; display: block;"></i>
+            <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #222;">Xác nhận xóa sản phẩm</h3>
+            <p style="margin: 0; color: #999; font-size: 14px;">Bạn chắc chắn muốn xóa sản phẩm <strong id="product-name"></strong>?</p>
+            <p style="margin: 8px 0 0 0; color: #ff4d4f; font-size: 12px;">Hành động này không thể hoàn tác!</p>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+            <button onclick="cancelDelete()" style="flex: 1; padding: 10px 16px; background: #f0f0f0; color: #222; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                Hủy
+            </button>
+            <button onclick="confirmDelete()" style="flex: 1; padding: 10px 16px; background: #ff4d4f; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                <i class="fas fa-trash"></i> Xóa
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let deleteProductId = null;
+
+    function deleteProduct(productId, productName) {
+        deleteProductId = productId;
+        document.getElementById('product-name').textContent = productName;
+        document.getElementById('delete-modal').style.display = 'flex';
+    }
+
+    function cancelDelete() {
+        deleteProductId = null;
+        document.getElementById('delete-modal').style.display = 'none';
+    }
+
+    function confirmDelete() {
+        if (deleteProductId) {
+            // Show loading
+            const modal = document.getElementById('delete-modal');
+            modal.style.opacity = '0.5';
+            modal.style.pointerEvents = 'none';
+
+            // Redirect to delete URL
+            setTimeout(() => {
+                window.location.href = `/delete/${deleteProductId}/`;
+            }, 500);
+        }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('delete-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            cancelDelete();
+        }
+    });
+</script>
+{% endblock %}

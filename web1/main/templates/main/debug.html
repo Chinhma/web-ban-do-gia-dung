@@ -1,0 +1,44 @@
+<!-- Debug Page -->
+{% extends 'main/layout.html' %} {% block content %}
+
+<div
+  style="
+    background-color: #fff3cd;
+    padding: 20px;
+    margin: 20px;
+    border: 2px solid #ff6b6b;
+  "
+>
+  <h2 style="color: #d32f2f">🔍 DEBUG INFORMATION</h2>
+
+  <h3>Biến dữ liệu:</h3>
+  <ul>
+    <li>featured count: {{ featured|length }}</li>
+    <li>newest count: {{ newest|length }}</li>
+    <li>products count: {{ products|length }}</li>
+  </ul>
+
+  {% if featured %}
+  <h3>Featured Products ({{ featured|length }}):</h3>
+  {% for product in featured %}
+  <div style="border: 1px solid #666; padding: 10px; margin: 10px 0">
+    <p><strong>{{ product.name }}</strong></p>
+    <p>Price: {{ product.price }}đ</p>
+    <p>Image: <code>{{ product.image }}</code></p>
+    {% if product.image %}
+    <p>Image URL: <code>{{ product.image.url }}</code></p>
+    <img
+      src="{{ product.image.url }}"
+      alt="test"
+      style="max-width: 150px; border: 2px solid green"
+    />
+    {% else %}
+    <p style="color: red">NO IMAGE!!!</p>
+    {% endif %}
+  </div>
+  {% endfor %} {% else %}
+  <p style="color: red">❌ NO FEATURED PRODUCTS</p>
+  {% endif %}
+</div>
+
+{% endblock %}

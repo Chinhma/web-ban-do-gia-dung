@@ -1,0 +1,203 @@
+{% extends "main/layout.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div style="background: #fafafa; padding: 20px; min-height: 100vh">
+  <div style="max-width: 800px; margin: 0 auto">
+    <!-- Back Link -->
+    <a href="{% url 'main:product_detail' product.id %}" style="color: #0066ff; text-decoration: none; font-size: 13px; margin-bottom: 20px; display: inline-block">
+      ← Quay lại xem chi tiết sản phẩm
+    </a>
+
+    <!-- Product Info Card -->
+    <div style="background: white; border-radius: 3px; padding: 20px; margin-bottom: 20px">
+      <div style="display: grid; grid-template-columns: 80px 1fr auto; gap: 15px; align-items: start">
+        <!-- Product Image -->
+        <div>
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 3px; border: 1px solid #e5e7eb">
+          {% else %}
+            <div style="width: 80px; height: 80px; background: #f0f0f0; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: #ccc">
+              <i class="fa-solid fa-image"></i>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Product Details -->
+        <div>
+          <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 500; color: #222">{{ product.name }}</h3>
+          <p style="margin: 0; color: #999; font-size: 12px">Phân loại: Mặc định</p>
+        </div>
+
+        <!-- Price and Quantity -->
+        <div style="text-align: right">
+          <div style="font-size: 16px; font-weight: 600; color: #ff6b6b; margin-bottom: 8px">
+            {{ product.formatted_price }}đ
+          </div>
+          <div style="color: #999; font-size: 12px">x{{ quantity }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subtotal Section -->
+    <div style="background: white; border-radius: 3px; padding: 20px; margin-bottom: 20px">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb">
+        <span style="color: #666; font-size: 13px">Tổng tiền tạm tính</span>
+        <span style="color: #ff6b6b; font-size: 14px; font-weight: 600" id="subtotal">
+          {% widthratio product.price 1 quantity %}đ
+        </span>
+      </div>
+    </div>
+
+    <!-- Customer Info Section -->
+    <div style="background: white; border-radius: 3px; padding: 20px; margin-bottom: 20px">
+      <h2 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600">Thông tin khách hàng</h2>
+      
+      <form id="checkout-form" method="POST" action="{% url 'main:checkout_now' %}">
+        {% csrf_token %}
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" name="quantity" value="{{ quantity }}">
+
+        <!-- Name -->
+        <div style="margin-bottom: 16px">
+          <input 
+            type="text" 
+            name="customer_name" 
+            placeholder="Họ và tên (bắt buộc)" 
+            required
+            style="width: 100%; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 3px; font-size: 13px; box-sizing: border-box; font-family: inherit"
+          >
+        </div>
+
+        <!-- Phone -->
+        <div style="margin-bottom: 16px">
+          <input 
+            type="tel" 
+            name="customer_phone" 
+            placeholder="Điện thoại (bắt buộc)" 
+            required
+            style="width: 100%; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 3px; font-size: 13px; box-sizing: border-box; font-family: inherit"
+          >
+        </div>
+
+        <!-- Address -->
+        <div style="margin-bottom: 16px">
+          <input 
+            type="text" 
+            name="customer_address" 
+            placeholder="Địa chỉ (bắt buộc)" 
+            required
+            style="width: 100%; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 3px; font-size: 13px; box-sizing: border-box; font-family: inherit"
+          >
+        </div>
+
+        <!-- Address Detail -->
+        <div style="margin-bottom: 16px">
+          <input 
+            type="text" 
+            name="customer_address_detail" 
+            placeholder="Chi tiết địa chỉ, tên đường phố, (...)" 
+            style="width: 100%; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 3px; font-size: 13px; box-sizing: border-box; font-family: inherit"
+          >
+        </div>
+
+        <!-- Notes -->
+        <div style="margin-bottom: 20px">
+          <textarea 
+            name="customer_notes" 
+            placeholder="Lời nhắn cho người bán" 
+            style="width: 100%; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 3px; font-size: 13px; box-sizing: border-box; font-family: inherit; min-height: 80px; resize: vertical"
+          ></textarea>
+        </div>
+
+        <!-- Delivery Method Section -->
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb">
+          <h3 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600">Hình thức giao hàng</h3>
+          <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 12px">
+            <input type="radio" name="delivery_method" value="standard" checked style="margin-right: 10px; width: 16px; height: 16px; cursor: pointer">
+            <span style="font-size: 13px; color: #666">Giao hàng tiêu chuẩn - Miễn phí</span>
+          </label>
+          <label style="display: flex; align-items: center; cursor: pointer">
+            <input type="radio" name="delivery_method" value="express" style="margin-right: 10px; width: 16px; height: 16px; cursor: pointer">
+            <span style="font-size: 13px; color: #666">Giao hàng nhanh - 25.000đ</span>
+          </label>
+        </div>
+
+        <!-- Payment Method Section -->
+        <div style="margin-bottom: 20px">
+          <h3 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600">Phương thức thanh toán</h3>
+          <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 12px">
+            <input type="radio" name="payment_method" value="cod" checked style="margin-right: 10px; width: 16px; height: 16px; cursor: pointer">
+            <i class="fa-solid fa-money-bill" style="margin-right: 8px; color: #0066ff"></i>
+            <span style="font-size: 13px; color: #666">Thanh toán khi nhận hàng</span>
+          </label>
+          <label style="display: flex; align-items: center; cursor: pointer">
+            <input type="radio" name="payment_method" value="online" style="margin-right: 10px; width: 16px; height: 16px; cursor: pointer">
+            <i class="fa-solid fa-credit-card" style="margin-right: 8px; color: #0066ff"></i>
+            <span style="font-size: 13px; color: #666">Thanh toán trực tuyến (ATM, Visa, Mastercard)</span>
+          </label>
+        </div>
+
+        <!-- Total Section -->
+        <div style="background: #fafafa; padding: 20px; border-radius: 3px; margin-bottom: 20px">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px">
+            <span style="color: #666; font-size: 13px">Tạm tính</span>
+            <span style="color: #222; font-size: 13px" id="temp-total">
+              {% widthratio product.price 1 quantity %}đ
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px">
+            <span style="color: #666; font-size: 13px">Phí vận chuyển</span>
+            <span style="color: #222; font-size: 13px" id="shipping-fee">0đ</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid #e5e7eb">
+            <span style="color: #222; font-size: 14px; font-weight: 600">Tổng tiền thanh toán</span>
+            <span style="color: #ff6b6b; font-size: 24px; font-weight: 600" id="total-price">
+              {% widthratio product.price 1 quantity %}đ
+            </span>
+          </div>
+        </div>
+
+        <!-- Order Button -->
+        <button type="submit" style="width: 100%; padding: 14px 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%); color: white; border: none; border-radius: 3px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3)">
+          <i class="fa-solid fa-check" style="margin-right: 8px"></i> ĐẶT HÀNG
+        </button>
+      </form>
+
+      <p style="text-align: center; color: #999; font-size: 12px; margin-top: 16px">
+        Bằng việc đặt hàng, bạn đồng ý với <a href="#" style="color: #0066ff; text-decoration: none">Điều khoản sử dụng</a> và <a href="#" style="color: #0066ff; text-decoration: none">Chính sách bảo mật</a> của chúng tôi
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Update shipping fee based on delivery method
+  const deliveryRadios = document.querySelectorAll('input[name="delivery_method"]');
+  
+  function updateTotal() {
+    const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked').value;
+    const subtotal = {{ product.price }} * {{ quantity }};
+    let shippingFee = 0;
+    
+    if (deliveryMethod === 'express') {
+      shippingFee = 25000;
+    }
+    
+    const total = subtotal + shippingFee;
+    
+    document.getElementById('temp-total').textContent = subtotal.toLocaleString('vi-VN') + 'đ';
+    document.getElementById('shipping-fee').textContent = shippingFee.toLocaleString('vi-VN') + 'đ';
+    document.getElementById('total-price').textContent = total.toLocaleString('vi-VN') + 'đ';
+  }
+  
+  deliveryRadios.forEach(radio => {
+    radio.addEventListener('change', updateTotal);
+  });
+  
+  // Initial calculation
+  updateTotal();
+</script>
+
+{% endblock %}

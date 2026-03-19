@@ -1,0 +1,201 @@
+{% extends 'main/layout.html' %}
+
+{% block content %}
+<div style="min-height: 100vh; padding: 40px 20px">
+  <div style="max-width: 900px; margin: 0 auto">
+    
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px">
+      <div>
+        <h1 style="font-size: 32px; font-weight: 700; color: #1a1a1a; margin: 0 0 8px 0">
+          Tài Khoản Của Tôi
+        </h1>
+        <p style="color: #666; font-size: 14px; margin: 0">
+          <i class="fa-solid fa-circle" style="font-size: 6px; margin: 0 8px"></i> 
+          Chào, <strong>{{ user.username }}</strong>
+        </p>
+      </div>
+      <a href="{% url 'main:logout' %}" style="background: #ff4444; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: all 0.3s ease" onmouseover="this.style.background='#cc0000'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#ff4444'; this.style.transform='translateY(0)'">
+        <i class="fa-solid fa-sign-out-alt" style="margin-right: 6px"></i> Đăng Xuất
+      </a>
+    </div>
+
+    <!-- Main Content -->
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px">
+      
+      <!-- Sidebar Menu -->
+      <div>
+        <div style="background: white; border-radius: 12px; border: 1px solid #e0e0e0; overflow: hidden">
+          <div style="padding: 20px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white">
+            <div style="width: 80px; height: 80px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 32px">
+              <i class="fa-solid fa-user-circle"></i>
+            </div>
+            <h3 style="margin: 0 0 4px 0; font-size: 16px">{{ user.username }}</h3>
+            <p style="margin: 0; font-size: 12px; opacity: 0.9">{{ user.email }}</p>
+          </div>
+
+          <nav style="padding: 0">
+            <a href="#profile" onclick="showSection('profile')" class="menu-item" style="display: block; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; text-decoration: none; color: #333; transition: all 0.3s ease; cursor: pointer" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+              <i class="fa-solid fa-user" style="width: 20px; margin-right: 12px; color: #667eea"></i> Thông tin cá nhân
+            </a>
+            <a href="#security" onclick="showSection('security')" class="menu-item" style="display: block; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; text-decoration: none; color: #333; transition: all 0.3s ease; cursor: pointer" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+              <i class="fa-solid fa-lock" style="width: 20px; margin-right: 12px; color: #667eea"></i> Bảo mật
+            </a>
+            <a href="#orders" onclick="showSection('orders')" class="menu-item" style="display: block; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; text-decoration: none; color: #333; transition: all 0.3s ease; cursor: pointer" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+              <i class="fa-solid fa-shopping-bag" style="width: 20px; margin-right: 12px; color: #667eea"></i> Đơn hàng của tôi
+            </a>
+            <a href="#addresses" onclick="showSection('addresses')" class="menu-item" style="display: block; padding: 15px 20px; border-bottom: 1px solid #e0e0e0; text-decoration: none; color: #333; transition: all 0.3s ease; cursor: pointer" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+              <i class="fa-solid fa-map-marker-alt" style="width: 20px; margin-right: 12px; color: #667eea"></i> Địa chỉ giao hàng
+            </a>
+            <a href="#wishlist" onclick="showSection('wishlist')" class="menu-item" style="display: block; padding: 15px 20px; text-decoration: none; color: #333; transition: all 0.3s ease; cursor: pointer" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+              <i class="fa-solid fa-heart" style="width: 20px; margin-right: 12px; color: #ff4444"></i> Danh sách yêu thích
+            </a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div>
+        
+        <!-- Profile Section -->
+        <div id="profile-section" class="content-section" style="background: white; border-radius: 12px; border: 1px solid #e0e0e0; padding: 30px">
+          <h2 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin: 0 0 20px 0">Thông Tin Cá Nhân</h2>
+          
+          <form style="max-width: 500px">
+            <div style="margin-bottom: 20px">
+              <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px">Tên đăng nhập</label>
+              <input type="text" value="{{ user.username }}" disabled style="width: 100%; padding: 12px 14px; border: 1px solid #e0e0e0; border-radius: 6px; background: #f9f9f9; color: #666" />
+            </div>
+
+            <div style="margin-bottom: 20px">
+              <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px">Email</label>
+              <input type="email" value="{{ user.email }}" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; box-sizing: border-box; transition: all 0.3s ease" placeholder="example@email.com"
+                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+              />
+            </div>
+
+            <div style="margin-bottom: 20px">
+              <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px">Số điện thoại</label>
+              <input type="tel" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; box-sizing: border-box; transition: all 0.3s ease" placeholder="Nhập số điện thoại"
+                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+              />
+            </div>
+
+            <div style="margin-bottom: 24px">
+              <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px">Ngày sinh</label>
+              <input type="date" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; box-sizing: border-box; transition: all 0.3s ease"
+                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+              />
+            </div>
+
+            <button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4)"
+              onmouseover="this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)'; this.style.transform='translateY(-2px)'"
+              onmouseout="this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)'; this.style.transform='translateY(0)'"
+            >
+              <i class="fa-solid fa-save" style="margin-right: 8px"></i> Lưu Thay Đổi
+            </button>
+          </form>
+        </div>
+
+        <!-- Security Section -->
+        <div id="security-section" class="content-section" style="display: none; background: white; border-radius: 12px; border: 1px solid #e0e0e0; padding: 30px">
+          <h2 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin: 0 0 20px 0">Đổi Mật Khẩu</h2>
+          
+          <form style="max-width: 500px" method="POST" action="">
+            {% csrf_token %}
+            <div style="margin-bottom: 20px">
+              <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px">Mật khẩu hiện tại</label>
+              <input type="password" name="old_password" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; box-sizing: border-box; transition: all 0.3s ease" placeholder="Nhập mật khẩu hiện tại"
+                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+              />
+            </div>
+
+            <div style="margin-bottom: 20px">
+              <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px">Mật khẩu mới</label>
+              <input type="password" name="new_password" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; box-sizing: border-box; transition: all 0.3s ease" placeholder="Nhập mật khẩu mới"
+                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+              />
+            </div>
+
+            <div style="margin-bottom: 24px">
+              <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px">Xác nhận mật khẩu mới</label>
+              <input type="password" name="confirm_password" style="width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; box-sizing: border-box; transition: all 0.3s ease" placeholder="Xác nhận mật khẩu mới"
+                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+              />
+            </div>
+
+            <button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4)"
+              onmouseover="this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)'; this.style.transform='translateY(-2px)'"
+              onmouseout="this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)'; this.style.transform='translateY(0)'"
+            >
+              <i class="fa-solid fa-key" style="margin-right: 8px"></i> Đổi Mật Khẩu
+            </button>
+          </form>
+        </div>
+
+        <!-- Orders Section -->
+        <div id="orders-section" class="content-section" style="display: none; background: white; border-radius: 12px; border: 1px solid #e0e0e0; padding: 30px">
+          <h2 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin: 0 0 20px 0">Đơn Hàng Của Tôi</h2>
+          
+          <div style="text-align: center; padding: 40px 20px; color: #999">
+            <i class="fa-solid fa-shopping-bag" style="font-size: 48px; display: block; margin-bottom: 16px"></i>
+            <p style="margin: 0">Bạn chưa có đơn hàng nào. <a href="{% url 'main:home' %}" style="color: #667eea; text-decoration: none">Quay lại mua sắm</a></p>
+          </div>
+        </div>
+
+        <!-- Addresses Section -->
+        <div id="addresses-section" class="content-section" style="display: none; background: white; border-radius: 12px; border: 1px solid #e0e0e0; padding: 30px">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+            <h2 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin: 0">Địa Chỉ Giao Hàng</h2>
+            <button style="background: #667eea; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; transition: all 0.3s ease"
+              onmouseover="this.style.background='#764ba2'; this.style.transform='translateY(-2px)'"
+              onmouseout="this.style.background='#667eea'; this.style.transform='translateY(0)'"
+            >
+              <i class="fa-solid fa-plus" style="margin-right: 6px"></i> Thêm Địa Chỉ
+            </button>
+          </div>
+
+          <div style="text-align: center; padding: 40px 20px; color: #999">
+            <i class="fa-solid fa-map-marker-alt" style="font-size: 48px; display: block; margin-bottom: 16px"></i>
+            <p style="margin: 0">Bạn chưa thêm địa chỉ nào. Hãy <a href="#" style="color: #667eea; text-decoration: none">thêm địa chỉ giao hàng</a> để mua hàng nhanh hơn.</p>
+          </div>
+        </div>
+
+        <!-- Wishlist Section -->
+        <div id="wishlist-section" class="content-section" style="display: none; background: white; border-radius: 12px; border: 1px solid #e0e0e0; padding: 30px">
+          <h2 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin: 0 0 20px 0">Danh Sách Yêu Thích</h2>
+          
+          <div style="text-align: center; padding: 40px 20px; color: #999">
+            <i class="fa-solid fa-heart" style="font-size: 48px; display: block; margin-bottom: 16px; color: #ff4444"></i>
+            <p style="margin: 0">Danh sách yêu thích của bạn trống. Hãy <a href="{% url 'main:home' %}" style="color: #667eea; text-decoration: none">khám phá các sản phẩm</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showSection(section) {
+  // Hide all sections
+  document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
+  
+  // Show selected section
+  const sectionId = section + '-section';
+  const element = document.getElementById(sectionId);
+  if (element) {
+    element.style.display = 'block';
+  }
+}
+
+// Show profile section by default
+showSection('profile');
+</script>
+
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends "main/admin_base.html" %}
+{% load humanize %}
+
+{% block title %}Chi tiết đơn hàng #{{ order.id }} - Admin{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1 style="font-size: 28px; font-weight: 600; color: #222;">
+        <i class="fas fa-file-invoice" style="margin-right: 12px; color: #4682b4;"></i>
+        Đơn hàng #{{ order.id }}
+    </h1>
+    <a href="{% url 'main:admin_orders' %}" style="color: #4682b4; text-decoration: none;">
+        <i class="fas fa-arrow-left"></i> Quay lại
+    </a>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+    <!-- Order Details -->
+    <div class="admin-block">
+        <div class="admin-block-title">
+            <i class="fas fa-info-circle"></i>
+            Thông tin đơn hàng
+        </div>
+        
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #999; font-size: 12px;">MÃ ĐƠN HÀNG</p>
+            <p style="margin: 0; font-size: 16px; font-weight: 600; color: #222;">#{{ order.id }}</p>
+        </div>
+
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #999; font-size: 12px;">KHÁCH HÀNG</p>
+            <p style="margin: 0; font-size: 14px; color: #222;">{{ order.user.username }}</p>
+            <p style="margin: 4px 0 0 0; color: #999; font-size: 13px;">{{ order.user.email }}</p>
+        </div>
+
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #999; font-size: 12px;">ĐỊA CHỈ GIAO HÀNG</p>
+            <p style="margin: 0; font-size: 14px; color: #222;">{{ order.recipient_name }}</p>
+            <p style="margin: 4px 0 0 0; color: #999; font-size: 13px;">{{ order.address }}</p>
+            <p style="margin: 4px 0 0 0; color: #999; font-size: 13px;">{{ order.phone }}</p>
+        </div>
+
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #999; font-size: 12px;">NGÀY ĐẶT HÀNG</p>
+            <p style="margin: 0; font-size: 14px; color: #222;">{{ order.created_at|date:"d/m/Y H:i" }}</p>
+        </div>
+
+        {% if order.note %}
+        <div style="margin-bottom: 20px;">
+            <p style="margin: 0 0 8px 0; color: #999; font-size: 12px;">GHI CHÚ KHÁCH HÀNG</p>
+            <p style="margin: 0; font-size: 14px; color: #222; background: #f9f9f9; padding: 12px; border-radius: 4px;">{{ order.note }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Status & Actions -->
+    <div class="admin-block">
+        <div class="admin-block-title">
+            <i class="fas fa-cogs"></i>
+            Trạng thái & Hành động
+        </div>
+
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 8px 0; color: #999; font-size: 12px;">TRẠNG THÁI HIỆN TẠI</p>
+            <div>
+                {% if order.status_vn == 'Chờ xác nhận' %}
+                    <span style="background: #fff7e6; color: #faad14; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 600;">
+                        <i class="fas fa-clock"></i> Chờ xác nhận
+                    </span>
+                {% elif order.status_vn == 'Đã xác nhận' %}
+                    <span style="background: #f6ffed; color: #52c41a; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 600;">
+                        <i class="fas fa-check"></i> Đã xác nhận
+                    </span>
+                {% elif order.status_vn == 'Đã hủy' %}
+                    <span style="background: #fff1f0; color: #ff4d4f; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 600;">
+                        <i class="fas fa-times"></i> Đã hủy
+                    </span>
+                {% elif order.status_vn == 'Đang giao' %}
+                    <span style="background: #e6f7ff; color: #1890ff; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 600;">
+                        <i class="fas fa-truck"></i> Đang giao
+                    </span>
+                {% elif order.status_vn == 'Hoàn thành' %}
+                    <span style="background: #f0fff5; color: #389e0d; padding: 8px 16px; border-radius: 4px; font-size: 14px; font-weight: 600;">
+                        <i class="fas fa-check-double"></i> Hoàn thành
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Admin cannot manually approve/reject; system auto progresses orders -->
+    </div>
+</div>
+
+<!-- Order Items -->
+<div class="admin-block">
+    <div class="admin-block-title">
+        <i class="fas fa-list"></i>
+        Chi tiết sản phẩm
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+            <tr style="border-bottom: 2px solid #e5e7eb; background-color: #f9f9f9;">
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666;">Sản phẩm</th>
+                <th style="padding: 12px; text-align: center; font-weight: 600; color: #666;">SL</th>
+                <th style="padding: 12px; text-align: right; font-weight: 600; color: #666;">Giá/cái</th>
+                <th style="padding: 12px; text-align: right; font-weight: 600; color: #666;">Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr style="border-bottom: 1px solid #f0f0f0;">
+                <td style="padding: 12px;">{{ item.product.name }}</td>
+                <td style="padding: 12px; text-align: center;">{{ item.quantity }}</td>
+                <td style="padding: 12px; text-align: right;">{{ item.price|intcomma }}đ</td>
+                <td style="padding: 12px; text-align: right; font-weight: 600; color: #ff6b6b;">{{ item.price|mul:item.quantity|intcomma }}đ</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="text-align: right; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+        <p style="margin: 0 0 8px 0; color: #666;">
+            <strong>Tổng tiền:</strong>
+            <span style="font-size: 24px; font-weight: 700; color: #ff6b6b; margin-left: 12px;">{{ order.total|intcomma }}đ</span>
+        </p>
+    </div>
+</div>
+
+<script>
+    function approveOrder(orderId) {
+        if (confirm('Bạn chắc chắn muốn xác nhận đơn hàng này?')) {
+            // Submit to approve endpoint
+            fetch(`/admin-panel/order/${orderId}/approve/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            }).then(res => res.json()).then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra!');
+                }
+            });
+        }
+    }
+
+    function rejectOrder(orderId) {
+        if (confirm('Bạn chắc chắn muốn từ chối đơn hàng này?')) {
+            fetch(`/admin-panel/order/${orderId}/reject/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            }).then(res => res.json()).then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra!');
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}

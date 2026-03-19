@@ -1,0 +1,377 @@
+{% extends "main/layout.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container cart-container" style="padding: 40px 0; min-height: calc(100vh - 300px)">
+  <h1 style="margin-bottom: 40px; font-size: 32px; font-weight: 700; color: #1f2937">
+    <i class="fa-solid fa-shopping-cart"></i> Giỏ hàng của bạn
+  </h1>
+
+  {% if items %}
+    <div class="cart-content">
+      <!-- Cart Items Table -->
+      <div class="cart-items-section">
+        <div class="cart-header" style="display: grid; grid-template-columns: 100px 1fr 120px 120px 120px 80px; gap: 20px; padding: 15px 20px; background: #f5f5f5; border-radius: 8px 8px 0 0; font-weight: 600; color: #666; border-bottom: 2px solid #e5e7eb">
+          <div>Ảnh</div>
+          <div>Sản phẩm</div>
+          <div style="text-align: center">Giá</div>
+          <div style="text-align: center">Số lượng</div>
+          <div style="text-align: right">Tổng cộng</div>
+          <div style="text-align: center">Hành động</div>
+        </div>
+
+        {% for cart_item in items %}
+          <div class="cart-item" data-item-id="{{ cart_item.item.id }}" style="display: grid; grid-template-columns: 100px 1fr 120px 120px 120px 80px; gap: 20px; padding: 20px; border-bottom: 1px solid #e5e7eb; align-items: center; transition: background 0.3s ease; background: white">
+            <!-- Product Image -->
+            <div style="width: 100px; height: 100px; border-radius: 8px; overflow: hidden; background: #f5f5f5; display: flex; align-items: center; justify-content: center">
+              {% if cart_item.item.product.image %}
+                <img src="{{ cart_item.item.product.image.url }}" alt="{{ cart_item.item.product.name }}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer" onclick="window.location.href='{% url 'main:product_detail' cart_item.item.product.id %}'">
+              {% else %}
+                <div style="color: #ccc; text-align: center">
+                  <i class="fa-solid fa-image" style="font-size: 40px"></i>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Product Name & Details -->
+            <div>
+              <a href="{% url 'main:product_detail' cart_item.item.product.id %}" style="text-decoration: none; color: #1f2937; font-weight: 600; display: block; margin-bottom: 8px; font-size: 16px; transition: color 0.3s ease" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#1f2937'">
+                {{ cart_item.item.product.name }}
+              </a>
+              <p style="margin: 0; color: #999; font-size: 14px">
+                Mã sản phẩm: #{{ cart_item.item.product.id }}
+              </p>
+            </div>
+
+            <!-- Price -->
+            <div style="text-align: center; font-weight: 600; color: #1890ff; font-size: 16px">
+              {{ cart_item.item.product.formatted_price }}đ
+            </div>
+
+            <!-- Quantity -->
+            <div style="text-align: center">
+              <div class="quantity-control" style="display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #e5e7eb; border-radius: 4px; padding: 8px; background: white">
+                <button class="qty-btn qty-minus" data-item-id="{{ cart_item.item.id }}" style="background: none; border: none; cursor: pointer; font-size: 14px; color: #666; padding: 4px 6px; transition: color 0.3s" onmouseover="this.style.color='#1890ff'" onmouseout="this.style.color='#666'">
+                  <i class="fa-solid fa-minus"></i>
+                </button>
+                <span class="item-qty" style="font-weight: 600; min-width: 30px; text-align: center">{{ cart_item.item.quantity }}</span>
+                <button class="qty-btn qty-plus" data-item-id="{{ cart_item.item.id }}" style="background: none; border: none; cursor: pointer; font-size: 14px; color: #666; padding: 4px 6px; transition: color 0.3s" onmouseover="this.style.color='#1890ff'" onmouseout="this.style.color='#666'">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Subtotal -->
+            <div style="text-align: right; font-weight: 700; font-size: 18px; color: #f56565" class="item-subtotal">
+              {{ cart_item.subtotal|default:"0"|intcomma }}đ
+            </div>
+
+            <!-- Delete Button -->
+            <div style="text-align: center">
+              <button class="delete-btn" data-item-id="{{ cart_item.item.id }}" style="background: #ff4d4f; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 6px" onmouseover="this.style.background='#d9363e'; this.style.boxShadow='0 2px 8px rgba(255, 77, 79, 0.3)'" onmouseout="this.style.background='#ff4d4f'; this.style.boxShadow='none'">
+                <i class="fa-solid fa-trash"></i> Xóa
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Cart Summary -->
+      <div class="cart-summary" style="margin-top: 30px; display: grid; grid-template-columns: 1fr 350px; gap: 40px">
+        <div></div>
+        
+        <div style="background: white; padding: 30px; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.05)">
+          <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #1f2937">
+            Tóm tắt đơn hàng
+          </h3>
+          
+          <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; color: #666">
+              <span>Số lượng sản phẩm:</span>
+              <span id="total-items" style="font-weight: 600">{{ items|length }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; color: #666">
+              <span>Tạm tính:</span>
+              <span id="subtotal-display" style="font-weight: 600">{{ total|intcomma }}đ</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; color: #666">
+              <span>Phí vận chuyển:</span>
+              <span style="font-weight: 600; color: #52c41a">Miễn phí</span>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; margin-bottom: 30px; padding: 15px 0; background: #fafafa; padding: 15px; border-radius: 4px">
+            <span style="font-weight: 700; font-size: 16px">Tổng cộng:</span>
+            <span style="font-weight: 700; font-size: 20px; color: #1890ff" id="total-price">{{ total|intcomma }}đ</span>
+          </div>
+
+          <a href="{% url 'main:checkout' %}" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px; transition: all 0.3s ease; border: none; cursor: pointer; margin-bottom: 12px" onmouseover="this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.4)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+            <i class="fa-solid fa-credit-card" style="margin-right: 8px"></i> Tiến hành thanh toán
+          </a>
+
+          <a href="{% url 'main:home' %}" style="display: block; width: 100%; padding: 12px; background: white; color: #667eea; text-align: center; border-radius: 6px; text-decoration: none; font-weight: 600; border: 2px solid #667eea; transition: all 0.3s ease; cursor: pointer">
+            <i class="fa-solid fa-arrow-left" style="margin-right: 8px"></i> Tiếp tục mua sắm
+          </a>
+        </div>
+      </div>
+    </div>
+
+  {% else %}
+    <!-- Empty Cart -->
+    <div style="text-align: center; padding: 80px 20px; background: white; border-radius: 8px; border: 2px dashed #e5e7eb">
+      <div style="margin-bottom: 30px">
+        <i class="fa-solid fa-cart-shopping" style="font-size: 80px; color: #ccc"></i>
+      </div>
+      <h2 style="margin: 0 0 15px 0; font-size: 24px; color: #1f2937; font-weight: 600">
+        Giỏ hàng của bạn đang trống
+      </h2>
+      <p style="margin: 0 0 30px 0; color: #999; font-size: 16px">
+        Hãy thêm một số sản phẩm để bắt đầu mua sắm
+      </p>
+      <a href="{% url 'main:home' %}" style="display: inline-block; padding: 14px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; transition: all 0.3s ease" onmouseover="this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.4)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+        <i class="fa-solid fa-arrow-left" style="margin-right: 8px"></i> Quay lại cửa hàng
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+  .cart-items-section {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #e5e7eb;
+  }
+
+  .cart-item:hover {
+    background: #fafafa !important;
+  }
+
+  @media (max-width: 1024px) {
+    .cart-header,
+    .cart-item {
+      grid-template-columns: 80px 1fr 100px 100px !important;
+      gap: 15px !important;
+    }
+
+    .item-subtotal {
+      text-align: center !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .cart-summary {
+      grid-template-columns: 1fr !important;
+    }
+
+    .cart-header {
+      display: none;
+    }
+
+    .cart-item {
+      display: flex !important;
+      flex-direction: column;
+      grid-template-columns: none !important;
+    }
+
+    .cart-item > div:first-child {
+      width: 100% !important;
+      height: 200px !important;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeCartActions();
+  });
+
+  function initializeCartActions() {
+    // Delete buttons
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', deleteCartItem);
+    });
+
+    // Quantity buttons
+    document.querySelectorAll('.qty-btn').forEach(btn => {
+      btn.addEventListener('click', updateQuantity);
+    });
+  }
+
+  function deleteCartItem(e) {
+    e.preventDefault();
+    const itemId = this.getAttribute('data-item-id');
+    const cartItem = document.querySelector(`[data-item-id="${itemId}"]`);
+
+    if (!confirm('Bạn chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+      return;
+    }
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+
+    fetch(`/cart/remove/${itemId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': csrfToken
+      },
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Animate removal
+        cartItem.style.opacity = '0';
+        cartItem.style.transform = 'translateX(-20px)';
+        cartItem.style.transition = 'all 0.3s ease';
+
+        setTimeout(() => {
+          cartItem.remove();
+          updateCartDisplay(data.total, data.cart_count);
+
+          // Check if cart is now empty
+          if (document.querySelectorAll('.cart-item').length === 0) {
+            location.reload();
+          }
+        }, 300);
+
+        showNotification(data.message, 'success');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showNotification('Lỗi khi xóa sản phẩm', 'error');
+    });
+  }
+
+  function updateQuantity(e) {
+    e.preventDefault();
+    const btn = this;
+    const itemId = btn.getAttribute('data-item-id');
+    const cartItem = document.querySelector(`[data-item-id="${itemId}"]`);
+    const qtySpan = cartItem.querySelector('.item-qty');
+    const currentQty = parseInt(qtySpan.textContent);
+    let newQty = currentQty;
+
+    if (btn.classList.contains('qty-plus')) {
+      newQty = currentQty + 1;
+    } else if (btn.classList.contains('qty-minus')) {
+      newQty = Math.max(1, currentQty - 1);
+    }
+
+    if (newQty === currentQty) return;
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+
+    fetch(`/cart/update/${itemId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': csrfToken
+      },
+      body: `quantity=${newQty}`,
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.deleted) {
+        // Item was deleted because qty is 0
+        cartItem.style.opacity = '0';
+        cartItem.style.transform = 'translateX(-20px)';
+        setTimeout(() => {
+          cartItem.remove();
+          if (document.querySelectorAll('.cart-item').length === 0) {
+            location.reload();
+          }
+        }, 300);
+      } else {
+        // Update quantity display
+        qtySpan.textContent = newQty;
+
+        // Update subtotal
+        const priceText = cartItem.querySelector('[style*="color: #1890ff"]').textContent;
+        const price = parseInt(priceText.replace(/[^\d]/g, ''));
+        const subtotal = price * newQty;
+        const subtotalSpan = cartItem.querySelector('.item-subtotal');
+        subtotalSpan.textContent = new Intl.NumberFormat('vi-VN').format(subtotal) + 'đ';
+
+        // Update cart total
+        updateCartDisplay(data.total, null);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showNotification('Lỗi khi cập nhật số lượng', 'error');
+    });
+  }
+
+  function updateCartDisplay(total, cartCount) {
+    const totalDisplay = document.getElementById('total-price');
+    const subtotalDisplay = document.getElementById('subtotal-display');
+
+    if (totalDisplay) {
+      totalDisplay.textContent = new Intl.NumberFormat('vi-VN').format(total) + 'đ';
+    }
+    if (subtotalDisplay) {
+      subtotalDisplay.textContent = new Intl.NumberFormat('vi-VN').format(total) + 'đ';
+    }
+
+    // Update cart count in header
+    if (cartCount !== null && cartCount !== undefined) {
+      const cartCountElement = document.getElementById('cart-count');
+      if (cartCountElement) {
+        cartCountElement.textContent = cartCount;
+      }
+    }
+  }
+
+  function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `cart-notification cart-notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      background-color: ${type === 'success' ? '#52c41a' : '#ff4d4f'};
+      color: white;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+      font-size: 14px;
+      font-weight: 500;
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.3s ease-out';
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 3000);
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+
+{% endblock %}

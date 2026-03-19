@@ -1,0 +1,203 @@
+{% extends "main/layout.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'main/css/orders.css' %}">
+{% endblock %}
+
+{% block content %}
+<div style="background: #fafafa; padding: 20px; min-height: 100vh">
+  <div style="max-width: 1200px; margin: 0 auto">
+    
+    <!-- ADMIN VIEW -->
+    {% if user.is_staff %}
+      <!-- Admin Header -->
+      <h1 style="margin: 0 0 24px 0; font-size: 28px; font-weight: 600; color: #222">
+        <i class="fa-solid fa-list-check" style="margin-right: 12px"></i>
+        Xác Nhận Đơn Hàng
+      </h1>
+
+      <!-- Pending Orders Table -->
+      <div style="background: white; border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow: hidden">
+        {% if filtered_orders %}
+          <table style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr style="background: #f9fafb; border-bottom: 1px solid #e5e7eb">
+                <th style="padding: 16px; text-align: left; font-size: 13px; font-weight: 600; color: #374151">Mã Đơn</th>
+                <th style="padding: 16px; text-align: left; font-size: 13px; font-weight: 600; color: #374151">Khách Hàng</th>
+                <th style="padding: 16px; text-align: left; font-size: 13px; font-weight: 600; color: #374151">Sản Phẩm</th>
+                <th style="padding: 16px; text-align: center; font-size: 13px; font-weight: 600; color: #374151">SL</th>
+                <th style="padding: 16px; text-align: right; font-size: 13px; font-weight: 600; color: #374151">Tổng Tiền</th>
+                <th style="padding: 16px; text-align: center; font-size: 13px; font-weight: 600; color: #374151">Ngày Đặt</th>
+                <th style="padding: 16px; text-align: center; font-size: 13px; font-weight: 600; color: #374151">Hành Động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in filtered_orders %}
+                <tr style="border-bottom: 1px solid #e5e7eb; transition: all 0.3s" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                  <!-- Order ID -->
+                  <td style="padding: 16px; font-size: 13px; color: #222; font-weight: 600">#{{ order.id }}</td>
+                  
+                  <!-- Customer -->
+                  <td style="padding: 16px; font-size: 13px; color: #666">
+                    <div style="margin: 0">{{ order.user.username }}</div>
+                    <div style="font-size: 12px; color: #999">{{ order.recipient_name|default:'Chưa cập nhật' }}</div>
+                  </td>
+                  
+                  <!-- Products -->
+                  <td style="padding: 16px; font-size: 13px; color: #666">
+                    {% for item in order.items.all %}
+                      <div>{{ item.product.name }} x{{ item.quantity }}</div>
+                    {% endfor %}
+                  </td>
+                  
+                  <!-- Total Quantity -->
+                  <td style="padding: 16px; text-align: center; font-size: 13px; color: #666">
+                    {{ order.items.all|length }}
+                  </td>
+                  
+                  <!-- Total Price -->
+                  <td style="padding: 16px; text-align: right; font-size: 13px; font-weight: 600; color: #ff6b6b">
+                    {{ order.total|floatformat:0|intcomma }}đ
+                  </td>
+                  
+                  <!-- Date -->
+                  <td style="padding: 16px; text-align: center; font-size: 12px; color: #999">
+                    {{ order.created_at|date:'d/m/Y H:i' }}
+                  </td>
+                  
+                  <!-- Actions -->
+                  <td style="padding: 16px; text-align: center; font-size: 13px">
+                    <div style="display: flex; gap: 8px; justify-content: center">
+                      <small style="display:inline-block; padding:6px 12px; border-radius:4px; background:#f5f5f5; color:#333">{{ order.status_vn }}</small>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div style="padding: 60px 20px; text-align: center">
+            <i class="fa-solid fa-check-circle" style="font-size: 48px; color: #52c41a; margin-bottom: 16px; display: block"></i>
+            <p style="font-size: 16px; color: #666">Tất cả đơn hàng đã được xác nhận!</p>
+          </div>
+        {% endif %}
+      </div>
+
+    <!-- USER VIEW -->
+    {% else %}
+      <!-- User Header -->
+      <h1 style="margin: 0 0 24px 0; font-size: 28px; font-weight: 600; color: #222">Các đơn hàng của tôi</h1>
+
+      <!-- Status Tabs -->
+      <div style="background: white; border-radius: 3px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05)">
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); border-bottom: 1px solid #e5e7eb">
+          <a href="?status=all" style="padding: 16px; text-align: center; text-decoration: none; color: {% if not status or status == 'all' %}#ff6b6b{% else %}#666{% endif %}; font-weight: {% if not status or status == 'all' %}600{% else %}500{% endif %}; border-bottom: {% if not status or status == 'all' %}3px solid #ff6b6b{% else %}none{% endif %}; transition: all 0.3s">
+            <i class="fa-solid fa-list" style="margin-right: 8px; font-size: 16px"></i>
+            Tất cả <span style="background: #f0f0f0; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 6px">{{ orders.count }}</span>
+          </a>
+          <a href="?status=pending" style="padding: 16px; text-align: center; text-decoration: none; color: {% if status == 'pending' %}#1890ff{% else %}#666{% endif %}; font-weight: {% if status == 'pending' %}600{% else %}500{% endif %}; border-bottom: {% if status == 'pending' %}3px solid #1890ff{% else %}none{% endif %}; transition: all 0.3s">
+            <i class="fa-solid fa-hourglass-half" style="margin-right: 8px; font-size: 16px"></i>
+            Chờ xác nhận
+          </a>
+          <a href="?status=confirmed" style="padding: 16px; text-align: center; text-decoration: none; color: {% if status == 'confirmed' %}#52c41a{% else %}#666{% endif %}; font-weight: {% if status == 'confirmed' %}600{% else %}500{% endif %}; border-bottom: {% if status == 'confirmed' %}3px solid #52c41a{% else %}none{% endif %}; transition: all 0.3s">
+            <i class="fa-solid fa-check-circle" style="margin-right: 8px; font-size: 16px"></i>
+            Đã xác nhận
+          </a>
+          <a href="?status=delivering" style="padding: 16px; text-align: center; text-decoration: none; color: {% if status == 'delivering' %}#faad14{% else %}#666{% endif %}; font-weight: {% if status == 'delivering' %}600{% else %}500{% endif %}; border-bottom: {% if status == 'delivering' %}3px solid #faad14{% else %}none{% endif %}; transition: all 0.3s">
+            <i class="fa-solid fa-truck" style="margin-right: 8px; font-size: 16px"></i>
+            Đang giao
+          </a>
+          <a href="?status=completed" style="padding: 16px; text-align: center; text-decoration: none; color: {% if status == 'completed' %}#faad14{% else %}#666{% endif %}; font-weight: {% if status == 'completed' %}600{% else %}500{% endif %}; border-bottom: {% if status == 'completed' %}3px solid #faad14{% else %}none{% endif %}; transition: all 0.3s">
+            <i class="fa-solid fa-star" style="margin-right: 8px; font-size: 16px"></i>
+            Hoàn thành
+          </a>
+        </div>
+      </div>
+
+      <!-- Orders List -->
+      {% if filtered_orders %}
+        {% for order in filtered_orders %}
+          <div style="background: white; border-radius: 3px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.3s">
+            <!-- Order Header -->
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb">
+              <div>
+                <p style="margin: 0 0 4px 0; color: #999; font-size: 12px">Mã đơn hàng</p>
+                <p style="margin: 0; font-size: 16px; font-weight: 600; color: #222">#{{ order.id }}</p>
+              </div>
+                <div style="text-align: right">
+                <small style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; margin-bottom: 8px; {% if order.status_vn == 'Chờ xác nhận' %}background: #e6f4ff; color: #1890ff{% elif order.status_vn == 'Đã xác nhận' %}background: #f6ffed; color: #52c41a{% elif order.status_vn == 'Đã hủy' %}background: #fff1f0; color: #ff4d4f{% else %}background: #f5f5f5; color: #999{% endif %}">
+                  {% if order.status_vn == 'Chờ xác nhận' %}⏳ Chờ xác nhận{% elif order.status_vn == 'Đã xác nhận' %}✓ Đã xác nhận{% elif order.status_vn == 'Đã hủy' %}✕ Đã hủy{% elif order.status_vn == 'Đang giao' %}🚚 Đang giao{% elif order.status_vn == 'Hoàn thành' %}✅ Hoàn thành{% else %}{{ order.status_vn }}{% endif %}
+                </small>
+                <p style="margin: 0; color: #999; font-size: 12px">{{ order.created_at|date:'d/m/Y H:i' }}</p>
+              </div>
+            </div>
+
+            <!-- Order Items -->
+            <div style="margin-bottom: 16px">
+              {% for item in order.items.all %}
+                <div style="display: grid; grid-template-columns: 60px 1fr auto; gap: 12px; align-items: center; margin-bottom: 12px; padding: 12px; background: #fafafa; border-radius: 3px">
+                  <!-- Product Image -->
+                  <div>
+                    {% if item.product.image %}
+                      <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 3px">
+                    {% else %}
+                      <div style="width: 60px; height: 60px; background: #f0f0f0; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: #ccc">
+                        <i class="fa-solid fa-image"></i>
+                      </div>
+                    {% endif %}
+                  </div>
+
+                  <!-- Product Info -->
+                  <div>
+                    <p style="margin: 0; font-size: 14px; font-weight: 500; color: #222">{{ item.product.name }}</p>
+                    <p style="margin: 4px 0 0 0; color: #999; font-size: 12px">x{{ item.quantity }}</p>
+                  </div>
+
+                  <!-- Product Price -->
+                  <div style="text-align: right">
+                    <p style="margin: 0; font-size: 14px; font-weight: 600; color: #ff6b6b">{{ item.price|floatformat:0|intcomma }}đ</p>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <!-- Order Total & Actions -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #e5e7eb">
+              <div>
+                <p style="margin: 0; color: #666; font-size: 13px">Tổng tiền:</p>
+                <p style="margin: 4px 0 0 0; font-size: 18px; font-weight: 600; color: #ff6b6b">{{ order.total|floatformat:0|intcomma }}đ</p>
+              </div>
+
+              <!-- Actions -->
+              <div style="display: flex; gap: 12px">
+                <button onclick="viewOrderDetail({{ order.id }})" style="padding: 8px 16px; background: #1890ff; color: white; border: none; border-radius: 3px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center" onmouseover="this.style.background='#0d6bcf'; this.style.boxShadow='0 4px 12px rgba(24, 144, 255, 0.3)'" onmouseout="this.style.background='#1890ff'; this.style.boxShadow='none'">
+                  <i class="fa-solid fa-eye" style="margin-right: 6px"></i> Xem chi tiết
+                </button>
+                {% if order.status_vn == 'Chờ xác nhận' %}
+                  <button onclick="cancelOrder({{ order.id }})" style="padding: 8px 16px; background: #ff4d4f; color: white; border: none; border-radius: 3px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center" onmouseover="this.style.background='#ff7875'; this.style.boxShadow='0 4px 12px rgba(255, 77, 79, 0.3)'" onmouseout="this.style.background='#ff4d4f'; this.style.boxShadow='none'">
+                    <i class="fa-solid fa-times" style="margin-right: 6px"></i> Hủy đơn
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div style="background: white; border-radius: 3px; padding: 60px 20px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05)">
+          <i class="fa-solid fa-inbox" style="font-size: 60px; color: #ccc; margin-bottom: 16px; display: block"></i>
+          <p style="margin: 0 0 16px 0; font-size: 16px; color: #666">Không có đơn hàng nào</p>
+          <a href="{% url 'main:home' %}" style="color: #1890ff; text-decoration: none; font-weight: 500; transition: all 0.3s" onmouseover="this.style.color='#0d6bcf'" onmouseout="this.style.color='#1890ff'">
+            ← Quay lại mua sắm
+          </a>
+        </div>
+      {% endif %}
+    {% endif %}
+
+  </div>
+</div>
+
+<script src="{% static 'main/js/orders.js' %}"></script>
+
+{% endblock %}

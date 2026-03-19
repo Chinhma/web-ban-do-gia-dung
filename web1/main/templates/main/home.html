@@ -1,0 +1,25 @@
+{% extends 'main/layout.html' %} {% block content %}
+
+<section style="padding: 20px 0; margin-bottom: 40px">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+    <h2 style="font-size: 28px; font-weight: bold; color: #222; margin: 0">Sản phẩm nổi bật</h2>
+    <a href="#" style="color: #1890ff; text-decoration: none; font-weight: 500">Xem tất cả →</a>
+  </div>
+  <p style="color: #666; font-size: 14px; margin: 0 0 20px 0">Những sản phẩm được yêu thích nhất tại HomeStore</p>
+  <div style="display: flex; gap: 20px; overflow-x: auto; padding: 10px 0">{% for product in featured %}{% include 'main/_product_card.html' with product=product badge_text="Nổi bật" badge_class="badge-hot" %}{% empty %}<p>Không có sản phẩm nổi bật</p>{% endfor %}</div>
+</section>
+
+<section style="padding: 20px 0; margin-bottom: 40px">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px">
+    <h2 style="font-size: 28px; font-weight: bold; color: #222; margin: 0">Sản phẩm mới</h2>
+    <a href="#" style="color: #1890ff; text-decoration: none; font-weight: 500">Xem tất cả →</a>
+  </div>
+  <div style="display: flex; gap: 20px; overflow-x: auto; padding: 10px 0">{% for product in newest %}{% include 'main/_product_card.html' with product=product badge_text="Mới" badge_class="badge-new" %}{% empty %}<p>Không có sản phẩm mới</p>{% endfor %}</div>
+</section>
+
+<section style="padding: 20px 0">
+  <h2 style="font-size: 28px; font-weight: bold; color: #222; margin: 0 0 20px 0">Tất cả sản phẩm</h2>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px">{% for product in products %}{% include 'main/_product_card.html' with product=product %}{% empty %}<p>Không có sản phẩm nào</p>{% endfor %}</div>
+</section>
+
+{% endblock %}

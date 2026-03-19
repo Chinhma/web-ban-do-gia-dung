@@ -1,0 +1,105 @@
+{% extends "main/admin_base.html" %}
+
+{% block title %}Sửa sản phẩm - Admin{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 28px; font-weight: 600; margin-bottom: 30px; color: #222;">
+    <i class="fas fa-edit" style="margin-right: 12px; color: #4682b4;"></i>
+    Sửa sản phẩm
+</h1>
+
+<div class="admin-block" style="max-width: 600px;">
+    {% if product %}
+    <form method="POST" enctype="multipart/form-data" id="product-form" onsubmit="handleEditProduct(event)">
+        {% csrf_token %}
+
+        <div style="margin-bottom: 24px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #222;">Tên sản phẩm <span style="color: #ff4d4f;">*</span></label>
+            <input type="text" name="name" value="{{ product.name }}" required style="width: 100%; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #222;">Danh mục <span style="color: #ff4d4f;">*</span></label>
+            <select name="category" required style="width: 100%; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if category.id == product.category.id %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #222;">Giá (đ) <span style="color: #ff4d4f;">*</span></label>
+            <input type="number" name="price" value="{{ product.price }}" required min="0" style="width: 100%; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #222;">Số lượng kho <span style="color: #ff4d4f;">*</span></label>
+            <input type="number" name="stock" value="{{ product.stock }}" required min="0" style="width: 100%; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #222;">Hình ảnh</label>
+            
+            {% if product.image %}
+            <div style="margin-bottom: 12px;">
+                <p style="color: #999; font-size: 12px; margin-bottom: 8px;">Hình ảnh hiện tại:</p>
+                <img src="{{ product.image.url }}" style="max-width: 200px; border-radius: 6px; border: 1px solid #e5e7eb;">
+            </div>
+            {% endif %}
+
+            <input type="file" name="image" accept="image/*" id="image-input" style="width: 100%; padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+            <div id="image-preview" style="margin-top: 12px; display: none;">
+                <p style="color: #999; font-size: 12px; margin-bottom: 8px;">Ảnh mới:</p>
+                <img id="preview-img" style="max-width: 200px; border-radius: 6px; border: 1px solid #e5e7eb;">
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+            <button type="submit" style="flex: 1; padding: 12px 20px; background: #4682b4; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;" id="submit-btn">
+                <i class="fas fa-save"></i> Lưu thay đổi
+            </button>
+            <a href="{% url 'main:admin_products' %}" style="flex: 1; padding: 12px 20px; background: #f0f0f0; color: #222; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; transition: all 0.3s;">
+                <i class="fas fa-times"></i> Hủy
+            </a>
+        </div>
+    </form>
+    {% else %}
+    <div style="text-align: center; padding: 60px 20px; color: #999;">
+        <i class="fas fa-exclamation-circle" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+        <p>Sản phẩm không tồn tại</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Image preview
+    document.getElementById('image-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('preview-img').src = event.target.result;
+                document.getElementById('image-preview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Handle form submission
+    function handleEditProduct(e) {
+        e.preventDefault();
+        
+        const form = document.getElementById('product-form');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+        
+        // Submit form
+        setTimeout(() => {
+            form.submit();
+        }, 500);
+    }
+</script>
+{% endblock %}

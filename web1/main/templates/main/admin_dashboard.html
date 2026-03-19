@@ -1,0 +1,208 @@
+{% extends "main/admin_base.html" %}
+{% load humanize %}
+
+{% block title %}Dashboard - Admin{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 28px; font-weight: 600; margin-bottom: 10px; color: #222;">
+    <i class="fas fa-chart-line" style="margin-right: 12px; color: #4682b4;"></i>
+    Dashboard Tổng Quan
+</h1>
+<p style="color: #999; margin-bottom: 30px;">Chào mừng trở lại! Đây là tổng quan hoạt động của cửa hàng.</p>
+
+<!-- Stats Grid -->
+<div class="admin-stats-grid">
+    <div class="stat-box success">
+        <div class="stat-box-icon">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="stat-box-label">Tổng doanh thu (tháng này)</div>
+        <div class="stat-box-value">{{ monthly_revenue|default:"0"|intcomma }}đ</div>
+        <small style="color: #52c41a;">
+            <i class="fas fa-arrow-up"></i> 12.5% so với tháng trước
+        </small>
+    </div>
+
+    <div class="stat-box">
+        <div class="stat-box-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="stat-box-label">Tổng đơn hàng</div>
+        <div class="stat-box-value">{{ total_orders|default:"0" }}</div>
+        <small style="color: #52c41a;">
+            <i class="fas fa-arrow-up"></i> 8.3% so với tháng trước
+        </small>
+    </div>
+
+    <div class="stat-box danger">
+        <div class="stat-box-icon">
+            <i class="fas fa-box"></i>
+        </div>
+        <div class="stat-box-label">Sản phẩm đang bán</div>
+        <div class="stat-box-value">{{ total_products|default:"0" }}</div>
+        <small style="color: #ff4d4f;">
+            <i class="fas fa-arrow-down"></i> 2.1% so với tháng trước
+        </small>
+    </div>
+
+    <div class="stat-box pending">
+        <div class="stat-box-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-box-label">Khách hàng</div>
+        <div class="stat-box-value">{{ total_customers|default:"0" }}</div>
+        <small style="color: #52c41a;">
+            <i class="fas fa-arrow-up"></i> 15.7% so với tháng trước
+        </small>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;">
+    <!-- Revenue Chart -->
+    <div class="admin-block">
+        <div class="admin-block-title">
+            <i class="fas fa-chart-line"></i>
+            Doanh thu 7 tháng gần đây
+        </div>
+        <canvas id="revenueChart" style="max-height: 300px;"></canvas>
+    </div>
+
+    <!-- Product Category Pie Chart -->
+    <div class="admin-block">
+        <div class="admin-block-title">
+            <i class="fas fa-chart-pie"></i>
+            Phân loại sản phẩm
+        </div>
+        <canvas id="categoryChart" style="max-height: 300px;"></canvas>
+    </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="admin-block">
+    <div class="admin-block-title">
+        <i class="fas fa-list-check"></i>
+        Đơn hàng gần đây
+    </div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+            <tr style="border-bottom: 2px solid #e5e7eb; background-color: #f9f9f9;">
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666;">Mã đơn</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666;">Khách hàng</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666;">Tổng tiền</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666;">Trạng thái</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666;">Ngày đặt</th>
+                <th style="padding: 12px; text-align: center; font-weight: 600; color: #666;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in recent_orders %}
+            <tr style="border-bottom: 1px solid #f0f0f0;">
+                <td style="padding: 12px;">#{{ order.id }}</td>
+                <td style="padding: 12px;">{{ order.user.username }}</td>
+                <td style="padding: 12px; font-weight: 600; color: #ff6b6b;">{{ order.total|intcomma }}đ</td>
+                <td style="padding: 12px;">
+                          {% if order.status_vn == 'Chờ xác nhận' %}
+                        <span style="background: #fff7e6; color: #faad14; padding: 4px 12px; border-radius: 4px; font-size: 12px;">Chờ xác nhận</span>
+                          {% elif order.status_vn == 'Đã xác nhận' %}
+                        <span style="background: #f6ffed; color: #52c41a; padding: 4px 12px; border-radius: 4px; font-size: 12px;">Đã xác nhận</span>
+                          {% elif order.status_vn == 'Đã hủy' %}
+                        <span style="background: #fff1f0; color: #ff4d4f; padding: 4px 12px; border-radius: 4px; font-size: 12px;">Đã hủy</span>
+                    {% else %}
+                        <span style="background: #f0f0f0; color: #666; padding: 4px 12px; border-radius: 4px; font-size: 12px;">{{ order.status_vn }}</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 12px;">{{ order.created_at|date:"d/m/Y" }}</td>
+                <td style="padding: 12px; text-align: center;">
+                    <a href="{% url 'main:admin_order_detail' order.id %}" style="color: #4682b4; text-decoration: none; cursor: pointer;">
+                        <i class="fas fa-eye"></i> Xem
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="padding: 24px; text-align: center; color: #999;">Không có đơn hàng nào</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+            datasets: [{
+                label: 'Doanh thu',
+                data: [3000000, 3100000, 3000000, 3500000, 4000000, 4200000, 4500000],
+                borderColor: '#4682b4',
+                backgroundColor: 'rgba(70, 130, 180, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5,
+                pointBackgroundColor: '#4682b4',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return (value / 1000000) + 'M';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Category Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Điện tử', 'Thời trang', 'Nội dung', 'Thực phẩm'],
+            datasets: [{
+                data: [35, 25, 20, 20],
+                backgroundColor: [
+                    '#4682b4',
+                    '#52c41a',
+                    '#faad14',
+                    '#ff4d4f'
+                ],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            size: 13
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

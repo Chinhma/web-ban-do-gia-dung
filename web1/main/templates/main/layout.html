@@ -1,0 +1,184 @@
+{% load static %}
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>HomeStore - Cửa hàng đồ gia dụng uy tín</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <link rel="stylesheet" href="{% static 'main/css/layout.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/css/header.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/css/footer.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/css/home.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/css/cart.css' %}" />
+    <link rel="stylesheet" href="{% static 'main/css/product_detail.css' %}" />
+    {% block extra_css %}{% endblock %}
+  </head>
+
+  <body>
+    {% csrf_token %}
+    <header class="header">
+      <div class="header-top">
+        <div class="container header-content">
+          <a class="logo" href="{% url 'main:home' %}">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span>HomeStore</span>
+          </a>
+
+          <div class="search-box">
+            <form method="GET" action="{% url 'main:home' %}">
+              <input
+                type="text"
+                name="q"
+                placeholder="Tìm kiếm sản phẩm..."
+                class="search-input"
+                value="{{ q }}"
+              />
+              <button type="submit" class="search-btn">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+            </form>
+          </div>
+
+          <div class="header-actions">
+            {% if user.is_authenticated %}
+            <span class="user-name">{{ user.username }}</span>
+            <a href="{% url 'main:logout' %}" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.3s ease; display: inline-block" onmouseover="this.style.boxShadow='0 4px 12px rgba(255, 107, 53, 0.4)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+              <i class="fa-solid fa-sign-out-alt" style="margin-right: 6px"></i> Đăng xuất
+            </a>
+            {% else %}
+            <a href="{% url 'main:login' %}" style="background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%); color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.3s ease; display: inline-block" onmouseover="this.style.boxShadow='0 4px 12px rgba(255, 107, 53, 0.4)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+              <i class="fa-solid fa-sign-in-alt" style="margin-right: 6px"></i> Đăng nhập
+            </a>
+            <a href="{% url 'main:register' %}" style="background: #1890ff; color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.3s ease; display: inline-block" onmouseover="this.style.background='#0d6bcf'; this.style.boxShadow='0 4px 12px rgba(24, 144, 255, 0.4)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#1890ff'; this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+              <i class="fa-solid fa-user-plus" style="margin-right: 6px"></i> Đăng ký
+            </a>
+            {% endif %}
+            <!-- Orders Icon -->
+            <a href="{% url 'main:orders' %}" class="icon-btn">
+              <i class="fa-solid fa-list"></i>
+            </a>
+            {% if user.is_authenticated and user.is_staff %}
+              <!-- Cart hidden for admin -->
+            {% else %}
+              <!-- User Cart Icon -->
+              <a
+                href="{% url 'main:cart' %}"
+                class="icon-btn cart-btn"
+              >
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="cart-count" id="cart-count">0</span>
+              </a>
+            {% endif %}
+            <!-- Admin Panel Icon (at the end) -->
+            {% if user.is_authenticated and user.is_staff %}
+              <a href="{% url 'main:admin_dashboard' %}" class="icon-btn">
+                <i class="fa-solid fa-user"></i>
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <nav class="category-bar">
+        <div class="container category-container">
+          <a class="category-item" href="{% url 'main:home' %}" style="{% if not selected_category %}color: #667eea; border-bottom: 3px solid #667eea{% endif %}">
+            <i class="fa-solid fa-th-large"></i><span>Tất cả sản phẩm</span>
+          </a>
+          {% if categories %}
+            {% for category in categories %}
+              <a class="category-item" href="?category={{ category.id }}" style="{% if selected_category == category.id|stringformat:'s' %}color: #667eea; border-bottom: 3px solid #667eea{% endif %}">
+                {% if category.name == 'Dụng cụ nấu ăn' %}<i class="fa-solid fa-bowl-food"></i>
+                {% elif category.name == 'Bát đĩa' %}<i class="fa-solid fa-utensils"></i>
+                {% elif category.name == 'Đồ uống' %}<i class="fa-solid fa-mug-hot"></i>
+                {% elif category.name == 'Lưu trữ' %}<i class="fa-solid fa-box-open"></i>
+                {% elif category.name == 'Thiết bị điện' %}<i class="fa-solid fa-plug"></i>
+                {% else %}<i class="fa-solid fa-tag"></i>{% endif %}
+                <span>{{ category.name }}</span>
+              </a>
+            {% endfor %}
+          {% else %}
+            <a class="category-item" href="#">
+              <i class="fa-solid fa-bowl-food"></i><span>Dụng cụ nấu ăn</span>
+            </a>
+            <a class="category-item" href="#">
+              <i class="fa-solid fa-utensils"></i><span>Bát đĩa</span>
+            </a>
+            <a class="category-item" href="#">
+              <i class="fa-solid fa-mug-hot"></i><span>Đồ uống</span>
+            </a>
+            <a class="category-item" href="#">
+              <i class="fa-solid fa-box-open"></i><span>Lưu trữ</span>
+            </a>
+            <a class="category-item" href="#">
+              <i class="fa-solid fa-plug"></i><span>Thiết bị điện</span>
+            </a>
+          {% endif %}
+        </div>
+      </nav>
+    </header>
+
+    <main class="main-content">
+      <div class="container">{% block content %}{% endblock %}</div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>Về HomeStore</h3>
+            <p>
+              Cửa hàng đồ gia dụng uy tín, chất lượng cao với giá cả phải chăng.
+            </p>
+          </div>
+
+          <div class="footer-section">
+            <h3>Danh mục</h3>
+            <ul>
+              <li><a href="#">Dụng cụ nấu ăn</a></li>
+              <li><a href="#">Bát đĩa</a></li>
+              <li><a href="#">Thiết bị điện</a></li>
+              <li><a href="#">Lưu trữ</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-section">
+            <h3>Hỗ trợ</h3>
+            <ul>
+              <li><a href="#">Chính sách đổi trả</a></li>
+              <li><a href="#">Hướng dẫn mua hàng</a></li>
+              <li><a href="#">Câu hỏi thường gặp</a></li>
+              <li><a href="#">Liên hệ</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-section">
+            <h3>Liên hệ</h3>
+            <p>Email: support@homestore.vn</p>
+            <p>Hotline: 1900 xxxx</p>
+            <p>Địa chỉ: TP. Hồ Chí Minh, Việt Nam</p>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>&copy; 2026 HomeStore. Bản quyền thuộc về HomeStore Vietnam.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="{% static 'main/js/layout.js' %}"></script>
+    <script src="{% static 'main/js/cart.js' %}"></script>
+  </body>
+</html>

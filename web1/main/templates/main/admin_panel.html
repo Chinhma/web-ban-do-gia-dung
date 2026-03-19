@@ -1,0 +1,533 @@
+{% extends "main/layout.html" %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'main/css/orders.css' %}">
+<style>
+  .admin-panel-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 30px 20px;
+    color: white;
+    margin-bottom: 30px;
+    border-radius: 3px;
+  }
+
+  .admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+
+  .stat-number {
+    font-size: 28px;
+    font-weight: 600;
+    color: #667eea;
+    margin: 10px 0;
+  }
+
+  .stat-label {
+    color: #999;
+    font-size: 12px;
+  }
+
+  .order-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .action-panel {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+
+  .action-panel-title {
+    background: #2c3e50;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px 8px 0 0;
+    font-size: 14px;
+    font-weight: 600;
+    margin: -20px -20px 16px -20px;
+  }
+
+  .action-panel-status {
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .btn-approve {
+    padding: 10px 28px;
+    background: #52c41a;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(82, 196, 26, 0.25);
+  }
+
+  .btn-approve:hover {
+    background: #45a517;
+    box-shadow: 0 4px 12px rgba(82, 196, 26, 0.35);
+    transform: translateY(-2px);
+  }
+
+  .btn-reject {
+    padding: 10px 28px;
+    background: #ff4d4f;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(255, 77, 79, 0.25);
+  }
+
+  .btn-reject:hover {
+    background: #ff7875;
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.35);
+    transform: translateY(-2px);
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 100px;
+  }
+
+  .status-approved {
+    background: #f6ffed;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+  }
+
+  .status-rejected {
+    background: #fff1f0;
+    color: #ff4d4f;
+    border: 1px solid #ffccc7;
+  }
+
+  .order-card {
+    background: white;
+    border-radius: 3px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .order-id {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+  }
+
+  .order-user {
+    font-size: 13px;
+    color: #999;
+  }
+
+  .order-time {
+    font-size: 12px;
+    color: #999;
+  }
+
+  .no-orders {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+  }
+
+  .review-note-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .review-note-content {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    max-width: 500px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+
+  .review-note-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: inherit;
+    min-height: 100px;
+    resize: vertical;
+    margin: 12px 0;
+    box-sizing: border-box;
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .modal-buttons button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .modal-cancel {
+    background: #f0f0f0;
+    color: #222;
+  }
+
+  .modal-cancel:hover {
+    background: #e0e0e0;
+  }
+
+  .modal-confirm {
+    color: white;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="background: #fafafa; padding: 20px; min-height: 100vh">
+  <div style="max-width: 1200px; margin: 0 auto">
+    
+    <!-- Header -->
+    <div class="admin-panel-header">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 600">
+        <i class="fa-solid fa-user" style="margin-right: 12px"></i>
+        Bảng điều khiển Admin
+      </h1>
+        <p style="margin: 8px 0 0 0; opacity: 0.9">Quản lý và xác nhận đơn hàng từ khách hàng</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="admin-stats">
+      <div class="stat-card">
+        <i class="fa-solid fa-hourglass-half" style="font-size: 24px; color: #faad14"></i>
+        <div class="stat-number" style="color: #faad14">{{ total_pending }}</div>
+          <div class="stat-label">Đơn Hàng Chờ Xác Nhận</div>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-box" style="font-size: 24px; color: #1890ff"></i>
+        <div class="stat-number" style="color: #1890ff">{{ total_orders }}</div>
+        <div class="stat-label">Tổng Đơn Hàng</div>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-coins" style="font-size: 24px; color: #52c41a"></i>
+        <div class="stat-number" style="color: #52c41a">{{ total_revenue|floatformat:0|intcomma }}đ</div>
+          <div class="stat-label">Doanh Thu Đã Xác Nhận</div>
+      </div>
+    </div>
+
+    <!-- Pending Orders Section -->
+    <div>
+      <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: #222">
+        <i class="fa-solid fa-list-check" style="margin-right: 8px; color: #faad14"></i>
+        Đơn Hàng Chờ Xác Nhận ({{ total_pending }})
+      </h2>
+
+      {% if pending_orders %}
+        {% for order in pending_orders %}
+          <div class="order-card">
+            <!-- Order Header -->
+            <div class="order-header">
+              <div>
+                <div class="order-id">#{{ order.id }} - {{ order.recipient_name|default:"Chưa cập nhật" }}</div>
+                <div class="order-user">Khách hàng: <strong>{{ order.user.username }}</strong></div>
+                <div class="order-time">{{ order.created_at|date:'d/m/Y H:i' }}</div>
+              </div>
+              <div style="text-align: right">
+                <div class="order-time">Địa chỉ: {{ order.address|default:"Chưa cập nhật" }}</div>
+                <div class="order-time">SĐT: {{ order.phone|default:"Chưa cập nhật" }}</div>
+              </div>
+            </div>
+
+            <!-- Order Items Table -->
+            <div style="margin-bottom: 16px">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+                <thead>
+                  <tr style="border-bottom: 1px solid #e5e7eb">
+                    <th style="text-align: left; padding: 8px 0; color: #666; font-weight: 500">Sản phẩm</th>
+                    <th style="text-align: center; padding: 8px 0; color: #666; font-weight: 500">SL</th>
+                    <th style="text-align: right; padding: 8px 0; color: #666; font-weight: 500">Giá/cái</th>
+                    <th style="text-align: right; padding: 8px 0; color: #666; font-weight: 500">Tổng</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in order.items.all %}
+                    <tr style="border-bottom: 1px solid #f0f0f0">
+                      <td style="padding: 8px 0">{{ item.product.name }}</td>
+                      <td style="text-align: center; padding: 8px 0">{{ item.quantity }}</td>
+                      <td style="text-align: right; padding: 8px 0">{{ item.price|floatformat:0|intcomma }}đ</td>
+                      <td style="text-align: right; padding: 8px 0; font-weight: 600; color: #ff6b6b">{{ item.price|floatformat:0|intcomma|mul:item.quantity }}đ</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Order Total & Actions -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #e5e7eb">
+              <div>
+                <span style="color: #666; font-size: 13px">Tổng tiền:</span>
+                <span style="font-size: 18px; font-weight: 600; color: #ff6b6b; margin-left: 8px">{{ order.total|floatformat:0|intcomma }}đ</span>
+              </div>
+
+              <!-- Status display (admin read-only) -->
+              <div>
+                <div style="display:inline-block; padding:10px 20px; border-radius:12px; font-weight:600; font-size:14px; {% if order.status_vn == 'Chờ xác nhận' %}background:#e6f4ff; color:#1890ff; border:1px solid #cbe7ff{% elif order.status_vn == 'Đã xác nhận' %}background:#f6ffed; color:#52c41a; border:1px solid #b7eb8f{% elif order.status_vn == 'Đã hủy' %}background:#fff1f0; color:#ff4d4f; border:1px solid #ffccc7{% elif order.status_vn == 'Đang giao' %}background:#e6f7ff; color:#1890ff; border:1px solid #b3e0ff{% elif order.status_vn == 'Hoàn thành' %}background:#f0fff5; color:#389e0d; border:1px solid #c6f6d5{% else %}background:#f5f5f5; color:#666; border:1px solid #eee{% endif %}">
+                  {{ order.status_vn }}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="order-card no-orders">
+          <i class="fa-solid fa-check-circle" style="font-size: 48px; color: #52c41a; margin-bottom: 16px; display: block"></i>
+         <p style="font-size: 16px; margin: 0">Tất cả đơn hàng đã được xác nhận!</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+let currentOrderId = null;
+let currentAction = null;
+
+function approveOrderWithNote(orderId) {
+  currentOrderId = orderId;
+  currentAction = 'approve';
+  showReviewNoteModal('Xác nhận đơn hàng #' + orderId);
+}
+
+function rejectOrderWithNote(orderId) {
+  currentOrderId = orderId;
+  currentAction = 'reject';
+  showReviewNoteModal('Từ chối đơn hàng #' + orderId);
+}
+
+function showReviewNoteModal(title) {
+  const modal = document.createElement('div');
+  modal.className = 'review-note-modal';
+  modal.id = 'review-modal';
+  
+  modal.innerHTML = `
+    <div class="review-note-content">
+      <h2 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #222">${title}</h2>
+      <p style="margin: 0 0 12px 0; color: #666; font-size: 13px">Ghi chú cho khách hàng (tùy chọn):</p>
+      <textarea class="review-note-textarea" id="review-note" placeholder="Nhập ghi chú..."></textarea>
+      <div class="modal-buttons">
+        <button class="modal-cancel" onclick="closeReviewModal()">Hủy</button>
+        <button class="modal-confirm" style="background: ${currentAction === 'approve' ? '#52c41a' : '#ff4d4f'}" onclick="submitReview()">
+          ${currentAction === 'approve' ? 'Xác nhận' : 'Từ chối'}
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+function closeReviewModal() {
+  const modal = document.getElementById('review-modal');
+  if (modal) modal.remove();
+  currentOrderId = null;
+  currentAction = null;
+}
+
+function submitReview() {
+  if (!currentOrderId || !currentAction) return;
+  
+  const reviewNote = document.getElementById('review-note')?.value || '';
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+  
+  // Show loading
+  const modal = document.getElementById('review-modal');
+  if (modal) {
+    modal.style.opacity = '0.5';
+    modal.style.pointerEvents = 'none';
+  }
+  
+  fetch(`/admin-panel/order/${currentOrderId}/${currentAction}/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `review_note=${encodeURIComponent(reviewNote)}`
+  })
+  .then(response => response.json())
+  .then(data => {
+    closeReviewModal();
+    if (data.success) {
+      showSuccessNotification(data.message);
+      // Reload page after 2 seconds
+      setTimeout(() => location.reload(), 2000);
+    } else {
+      showErrorNotification(data.message || 'Có lỗi xảy ra!');
+      if (modal) {
+        modal.style.opacity = '1';
+        modal.style.pointerEvents = 'auto';
+      }
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showErrorNotification('Có lỗi xảy ra, vui lòng thử lại!');
+    closeReviewModal();
+  });
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function showSuccessNotification(message) {
+  const notification = document.createElement("div");
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-left: 4px solid #52c41a;
+    padding: 16px 20px;
+    border-radius: 3px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 2000;
+    animation: slideIn 0.3s ease-out;
+  `;
+  notification.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 12px">
+      <i class="fa-solid fa-check-circle" style="color: #52c41a; font-size: 18px"></i>
+      <div>
+        <p style="margin: 0; color: #52c41a; font-weight: 600; font-size: 14px">Thành công</p>
+        <p style="margin: 4px 0 0 0; color: #666; font-size: 13px">${message}</p>
+      </div>
+    </div>
+    <style>
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  `;
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 3000);
+}
+
+function showErrorNotification(message) {
+  const notification = document.createElement("div");
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-left: 4px solid #ff4d4f;
+    padding: 16px 20px;
+    border-radius: 3px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 2000;
+    animation: slideIn 0.3s ease-out;
+  `;
+  notification.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 12px">
+      <i class="fa-solid fa-circle-exclamation" style="color: #ff4d4f; font-size: 18px"></i>
+      <div>
+        <p style="margin: 0; color: #ff4d4f; font-weight: 600; font-size: 14px">Lỗi</p>
+        <p style="margin: 4px 0 0 0; color: #666; font-size: 13px">${message}</p>
+      </div>
+    </div>
+    <style>
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  `;
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 3000);
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeReviewModal();
+  }
+});
+</script>
+
+{% endblock %}

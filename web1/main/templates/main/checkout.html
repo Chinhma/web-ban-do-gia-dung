@@ -1,0 +1,155 @@
+{% extends "main/layout.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}Thanh toán - Giỏ hàng{{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'main/css/checkout.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+  <div class="checkout-wrapper">
+    <!-- Header -->
+    <h1 class="checkout-header">Giỏ hàng của bạn</h1>
+
+    <!-- Cart Items Section -->
+    <div class="checkout-cart-items">
+      {% for item_data in items %}
+        {% with item=item_data.item product=item.product subtotal=item_data.subtotal %}
+        <div class="cart-item-card">
+          <div class="cart-item-image">
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+              <div class="no-image">Không có ảnh</div>
+            {% endif %}
+          </div>
+
+          <div class="cart-item-details">
+            <div class="cart-item-name">{{ product.name }}</div>
+            <div class="cart-item-qty-section">
+              <span class="cart-item-qty">{{ item.quantity }}</span>
+              <span class="cart-item-unit">{% if product.category %}{{ product.category.name }}{% else %}Sản phẩm{% endif %}</span>
+            </div>
+          </div>
+
+          <div class="cart-item-price">
+            {{ subtotal|floatformat:0|intcomma }}đ
+          </div>
+
+          <button type="button" class="cart-item-remove" onclick="removeItemCheckout({{ item.id }})">×</button>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+
+    <!-- Total Section -->
+    <div class="checkout-total-section">
+      <div class="checkout-total-label">Tổng giá trị đơn hàng</div>
+      <div class="checkout-total-amount">{{ total|floatformat:0|intcomma }}đ</div>
+    </div>
+
+    <!-- Checkout Form -->
+    <form method="POST" class="checkout-form">
+      {% csrf_token %}
+
+      <!-- Customer Info Section -->
+      <div class="checkout-section">
+        <h2 class="checkout-section-title">Thông tin khách hàng</h2>
+
+        <div class="checkout-form-group">
+          <input type="text" name="full_name" placeholder="Họ và tên (bắt buộc)" 
+                 class="checkout-input" required>
+        </div>
+
+        <div class="checkout-form-group">
+          <input type="tel" name="phone" placeholder="Điện thoại (bắt buộc)" 
+                 class="checkout-input" required>
+        </div>
+
+        <div class="checkout-form-group">
+          <input type="text" name="address" placeholder="Địa chỉ (bắt buộc)" 
+                 class="checkout-input" required>
+        </div>
+
+        <div class="checkout-form-group">
+          <textarea name="note" placeholder="Yêu cầu khác" 
+                    class="checkout-input checkout-textarea"></textarea>
+        </div>
+      </div>
+
+      <!-- Member Type Section -->
+      <div class="checkout-section">
+        <div class="checkout-member-options">
+          <label class="checkout-radio-label">
+            <input type="radio" name="member_type" value="regular" checked>
+            <span class="radio-text">Chưa có thẻ</span>
+          </label>
+          <label class="checkout-radio-label">
+            <input type="radio" name="member_type" value="member">
+            <span class="radio-text">Thẻ member</span>
+          </label>
+          <label class="checkout-radio-label">
+            <input type="radio" name="member_type" value="vip">
+            <span class="radio-text">Thẻ VIP</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Final Total -->
+      <div class="checkout-final-section">
+        <div class="checkout-final-label">Tổng tiền thanh toán:</div>
+        <div class="checkout-final-amount">{{ total|floatformat:0|intcomma }}đ</div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="checkout-buttons">
+        <button type="submit" name="payment_method" value="cod" class="checkout-btn checkout-btn-primary">
+          <span class="btn-title">ĐẶT HÀNG</span>
+          <span class="btn-subtitle">Nhận hàng và thanh toán tại nhà</span>
+        </button>
+
+        <button type="submit" name="payment_method" value="online" class="checkout-btn checkout-btn-secondary">
+          <span class="btn-title">THANH TOÁN ONLINE</span>
+          <span class="btn-subtitle">Bằng thẻ ATM, Visa, Master</span>
+        </button>
+      </div>
+
+      <!-- Continue Shopping -->
+      <div class="checkout-continue">
+        <a href="{% url 'main:home' %}" class="continue-shopping-link">Mua thêm sản phẩm khác</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function removeItemCheckout(itemId) {
+  if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/cart/remove/${itemId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success || data.deleted) {
+        location.reload();
+      } else {
+        alert('Có lỗi khi xóa sản phẩm');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Có lỗi khi xóa sản phẩm');
+    });
+  }
+}
+</script>
+{% endblock %}

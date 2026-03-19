@@ -1,0 +1,358 @@
+{% extends "main/layout.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'main/css/order_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div style="background: #fafafa; padding: 20px; min-height: 100vh">
+  <div style="max-width: 900px; margin: 0 auto">
+    <!-- Back Button -->
+    <div style="margin-bottom: 20px">
+      <a href="{% url 'main:orders' %}" style="color: #1890ff; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s" onmouseover="this.style.color='#0d6bcf'" onmouseout="this.style.color='#1890ff'">
+        <i class="fa-solid fa-arrow-left"></i>
+        Quay lại danh sách đơn hàng
+      </a>
+    </div>
+
+    <!-- Order Header -->
+    <div style="background: white; border-radius: 3px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05)">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb">
+        <div>
+          <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 600; color: #222">Đơn hàng #{{ order.id }}</h1>
+          <p style="margin: 0; color: #999; font-size: 13px">Tạo ngày: {{ order.created_at|date:'d/m/Y H:i' }}</p>
+        </div>
+        <div style="text-align: right">
+          <small style="display: inline-block; padding: 6px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; margin-bottom: 8px;
+            {% if order.status_vn == 'Chờ xác nhận' %}background: #e6f4ff; color: #1890ff{% elif order.status_vn == 'Đã xác nhận' %}background: #f6ffed; color: #52c41a{% elif order.status_vn == 'Đã hủy' %}background: #fff1f0; color: #ff4d4f{% elif order.status_vn == 'Đang giao' %}background: #fff7e6; color: #faad14{% elif order.status_vn == 'Hoàn thành' %}background: #e6f7ff; color: #1890ff{% endif %}">
+            {% if order.status_vn == 'Chờ xác nhận' %}⏳ Chờ xác nhận
+            {% elif order.status_vn == 'Đã xác nhận' %}✓ Đã xác nhận
+            {% elif order.status_vn == 'Đã hủy' %}✕ Đã hủy
+            {% elif order.status_vn == 'Đang giao' %}🚚 Đang giao
+            {% elif order.status_vn == 'Hoàn thành' %}✅ Hoàn thành
+            {% else %}{{ order.status_vn }}
+            {% endif %}
+          </small>
+          {% if order.approved_at %}
+            <p style="margin: 4px 0 0 0; color: #999; font-size: 12px">Xác nhận ngày: {{ order.approved_at|date:'d/m/Y H:i' }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Order Items -->
+      <div style="margin-bottom: 24px">
+        <h3 style="margin: 0 0 16px 0; font-size: 14px; font-weight: 600; color: #222">Sản phẩm</h3>
+        <table style="width: 100%; border-collapse: collapse">
+          <thead>
+            <tr style="border-bottom: 1px solid #e5e7eb">
+              <th style="text-align: left; padding: 12px 0; color: #666; font-size: 13px; font-weight: 500">Sản phẩm</th>
+              <th style="text-align: center; padding: 12px 0; color: #666; font-size: 13px; font-weight: 500">Số lượng</th>
+              <th style="text-align: right; padding: 12px 0; color: #666; font-size: 13px; font-weight: 500">Giá/cái</th>
+              <th style="text-align: right; padding: 12px 0; color: #666; font-size: 13px; font-weight: 500">Tổng</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item_data in items %}
+              {% with item=item_data.item %}
+              <tr style="border-bottom: 1px solid #f0f0f0">
+                <td style="padding: 16px 0; color: #222; font-size: 13px">
+                  <div style="display: flex; gap: 12px; align-items: center">
+                    {% if item.product.image %}
+                      <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 3px">
+                    {% else %}
+                      <div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: #ccc">
+                        <i class="fa-solid fa-image"></i>
+                      </div>
+                    {% endif %}
+                    <span>{{ item.product.name }}</span>
+                  </div>
+                </td>
+                <td style="padding: 16px 0; text-align: center; color: #666; font-size: 13px">{{ item.quantity }}</td>
+                <td style="padding: 16px 0; text-align: right; color: #666; font-size: 13px">{{ item.price|floatformat:0|intcomma }}đ</td>
+                <td style="padding: 16px 0; text-align: right; color: #222; font-weight: 600; font-size: 13px">{{ item_data.subtotal|floatformat:0|intcomma }}đ</td>
+              </tr>
+              {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Order Total -->
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb">
+        <div style="width: 300px">
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #666; font-size: 13px">
+            <span>Tổng tiền sản phẩm:</span>
+            <span>{{ order.total|floatformat:0|intcomma }}đ</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #666; font-size: 13px; border-bottom: 1px solid #e5e7eb; margin-bottom: 8px">
+            <span>Phí vận chuyển:</span>
+            <span>0đ</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #222; font-size: 16px; font-weight: 600">
+            <span>Tổng thanh toán:</span>
+            <span style="color: #ff6b6b">{{ order.total|floatformat:0|intcomma }}đ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shipping Information -->
+    <div style="background: white; border-radius: 3px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05)">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #222">Thông tin giao hàng</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px">
+        <div>
+          <p style="margin: 0 0 4px 0; color: #999; font-size: 12px">Tên người nhận:</p>
+          <p style="margin: 0 0 16px 0; color: #222; font-size: 14px; font-weight: 500">{{ order.recipient_name|default:'Chưa cập nhật' }}</p>
+
+          <p style="margin: 0 0 4px 0; color: #999; font-size: 12px">Số điện thoại:</p>
+          <p style="margin: 0 0 16px 0; color: #222; font-size: 14px; font-weight: 500">{{ order.phone|default:'Chưa cập nhật' }}</p>
+        </div>
+        <div>
+          <p style="margin: 0 0 4px 0; color: #999; font-size: 12px">Địa chỉ giao hàng:</p>
+          <p style="margin: 0 0 16px 0; color: #222; font-size: 14px; font-weight: 500">{{ order.address|default:'Chưa cập nhật' }}</p>
+
+          <p style="margin: 0 0 4px 0; color: #999; font-size: 12px">Ghi chú:</p>
+          <p style="margin: 0; color: #222; font-size: 14px; font-weight: 500">{{ order.note|default:'Không có' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Review Note (if exists) -->
+    {% if order.review_note %}
+    <div style="background: white; border-radius: 3px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 4px solid #faad14">
+      <h3 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #faad14">
+        <i class="fa-solid fa-note-sticky" style="margin-right: 8px"></i>
+        Ghi chú từ nhân viên
+      </h3>
+      <p style="margin: 0; color: #666; font-size: 13px; line-height: 1.6">{{ order.review_note }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 20px">
+      <a href="{% url 'main:orders' %}" style="padding: 10px 24px; background: #f0f0f0; color: #222; border: none; border-radius: 3px; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f0f0f0'">
+        <i class="fa-solid fa-arrow-left"></i>
+        Quay lại
+      </a>
+      
+      {% if order.status_vn == 'Chờ xác nhận' %}
+      <button onclick="cancelOrderConfirm({{ order.id }})" style="padding: 10px 24px; background: #ff4d4f; color: white; border: none; border-radius: 3px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px" onmouseover="this.style.background='#ff7875'; this.style.boxShadow='0 4px 12px rgba(255, 77, 79, 0.3)'" onmouseout="this.style.background='#ff4d4f'; this.style.boxShadow='none'">
+        <i class="fa-solid fa-times"></i>
+        Hủy đơn hàng
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+function cancelOrderConfirm(orderId) {
+  const dialog = document.createElement("div");
+  dialog.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  `;
+
+  dialog.innerHTML = `
+    <div style="background: white; border-radius: 8px; padding: 24px; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2)">
+      <h2 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #222">
+        <i class="fa-solid fa-exclamation-triangle" style="color: #faad14; margin-right: 8px"></i>
+        Xác nhận hủy đơn hàng
+      </h2>
+      <p style="margin: 0 0 24px 0; color: #666; font-size: 14px">
+        Bạn có chắc chắn muốn hủy đơn hàng này? Hành động này không thể hoàn tác.
+      </p>
+      <div style="display: flex; gap: 12px">
+        <button onclick="this.parentElement.parentElement.parentElement.remove()" style="flex: 1; padding: 10px 16px; background: #f0f0f0; border: none; border-radius: 3px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f0f0f0'">
+          Không, tôi bỏ qua
+        </button>
+        <button onclick="confirmCancelOrder(${orderId})" style="flex: 1; padding: 10px 16px; background: #ff4d4f; color: white; border: none; border-radius: 3px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s" onmouseover="this.style.background='#ff7875'" onmouseout="this.style.background='#ff4d4f'">
+          Có, hủy đơn hàng
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(dialog);
+}
+
+function confirmCancelOrder(orderId) {
+  // Remove dialog
+  const dialogs = document.querySelectorAll('[style*="position: fixed"]');
+  dialogs.forEach((d) => {
+    if (d.style.background && d.style.background.includes("rgba")) {
+      d.remove();
+    }
+  });
+
+  // Show loading
+  const loadingDiv = document.createElement("div");
+  loadingDiv.id = "loading-overlay";
+  loadingDiv.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+  `;
+  loadingDiv.innerHTML = `
+    <div style="background: white; padding: 24px; border-radius: 8px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2)">
+      <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f0f0f0; border-top-color: #1890ff; border-radius: 50%; animation: spin 1s linear infinite"></div>
+      <p style="margin: 16px 0 0 0; color: #666; font-size: 14px">Đang xử lý...</p>
+    </div>
+    <style>
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  `;
+  document.body.appendChild(loadingDiv);
+
+  // Make AJAX request to cancel order
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+  const cancelUrl = `/orders/${orderId}/cancel/`;
+
+  fetch(cancelUrl, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': csrfToken,
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.json();
+    }
+    throw new Error('Failed to cancel order');
+  })
+  .then(data => {
+    // Remove loading overlay
+    const loading = document.getElementById('loading-overlay');
+    if (loading) loading.remove();
+
+    if (data.success) {
+      // Show success message
+      showSuccessNotification('Đơn hàng đã bị hủy thành công!');
+      
+      // Redirect to orders list after 2 seconds
+      setTimeout(() => {
+        window.location.href = '/orders/';
+      }, 2000);
+    } else {
+      showErrorNotification(data.message || 'Có lỗi xảy ra!');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    const loading = document.getElementById('loading-overlay');
+    if (loading) loading.remove();
+    showErrorNotification('Có lỗi xảy ra, vui lòng thử lại!');
+  });
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function showSuccessNotification(message) {
+  const notification = document.createElement("div");
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-left: 4px solid #52c41a;
+    padding: 16px 20px;
+    border-radius: 3px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 2000;
+    animation: slideIn 0.3s ease-out;
+  `;
+  notification.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 12px">
+      <i class="fa-solid fa-check-circle" style="color: #52c41a; font-size: 18px"></i>
+      <div>
+        <p style="margin: 0; color: #52c41a; font-weight: 600; font-size: 14px">Thành công</p>
+        <p style="margin: 4px 0 0 0; color: #666; font-size: 13px">${message}</p>
+      </div>
+    </div>
+    <style>
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  `;
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 3000);
+}
+
+function showErrorNotification(message) {
+  const notification = document.createElement("div");
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-left: 4px solid #ff4d4f;
+    padding: 16px 20px;
+    border-radius: 3px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 2000;
+    animation: slideIn 0.3s ease-out;
+  `;
+  notification.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 12px">
+      <i class="fa-solid fa-circle-exclamation" style="color: #ff4d4f; font-size: 18px"></i>
+      <div>
+        <p style="margin: 0; color: #ff4d4f; font-weight: 600; font-size: 14px">Lỗi</p>
+        <p style="margin: 4px 0 0 0; color: #666; font-size: 13px">${message}</p>
+      </div>
+    </div>
+    <style>
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  `;
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 3000);
+}
+</script>
+
+{% endblock %}

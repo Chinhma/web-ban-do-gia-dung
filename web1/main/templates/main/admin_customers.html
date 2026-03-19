@@ -1,0 +1,55 @@
+{% extends "main/admin_base.html" %}
+
+{% block title %}Quản lý khách hàng - Admin{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 28px; font-weight: 600; margin-bottom: 30px; color: #222;">
+    <i class="fas fa-users" style="margin-right: 12px; color: #4682b4;"></i>
+    Quản lý khách hàng
+</h1>
+
+<div class="admin-block">
+    {% if customers %}
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+            <tr style="border-bottom: 2px solid #e5e7eb; background-color: #f9f9f9;">
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666;">Tên người dùng</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666;">Email</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666;">Họ tên</th>
+                <th style="padding: 12px; text-align: center; font-weight: 600; color: #666;">Số đơn hàng</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: #666;">Ngày tham gia</th>
+                <th style="padding: 12px; text-align: center; font-weight: 600; color: #666;">Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr style="border-bottom: 1px solid #f0f0f0;">
+                <td style="padding: 12px;">{{ customer.username }}</td>
+                <td style="padding: 12px;">{{ customer.email }}</td>
+                <td style="padding: 12px;">{{ customer.first_name|default:"-" }}</td>
+                <td style="padding: 12px; text-align: center;">
+                    <span style="background: #f0f0f0; padding: 4px 12px; border-radius: 4px;">
+                        {{ customer.orders.count }}
+                    </span>
+                </td>
+                <td style="padding: 12px;">{{ customer.date_joined|date:"d/m/Y" }}</td>
+                <td style="padding: 12px; text-align: center;">
+                    <a href="#" style="color: #4682b4; margin-right: 12px; text-decoration: none;">
+                        <i class="fas fa-eye"></i> Xem
+                    </a>
+                    <a href="#" style="color: #ff4d4f; text-decoration: none;" onclick="return confirm('Bạn chắc chắn muốn xóa khách hàng này?');">
+                        <i class="fas fa-trash"></i> Xóa
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 60px 20px; color: #999;">
+        <i class="fas fa-user-friends" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+        <p>Không có khách hàng nào</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
